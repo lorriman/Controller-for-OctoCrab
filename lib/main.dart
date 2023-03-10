@@ -131,26 +131,40 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool isInitialServerRequestSent = false;
 
   final Map<ConfigEnum, TextEditingController> textControllers = {};
-  final List<ConfigItem> configItems = [];
+  final Map<ConfigEnum,ConfigItem> configItems={};
   final OctoCrabApi api = OctoCrabApi();
 
   @override
   void initState() {
     super.initState();
 
-    _loadConfig(configItems,textControllers);
+    _loadConfig(configItems);
+    _initTextControllers(configItems,textControllers);
   }
 
-  void _loadConfig(configItems,textControllers ) {
+  void _loadConfig(configItems ) {
+
+    configItems.clear();
+
     final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
     
     for (final enumItem in ConfigEnum.values) {
       final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
           enumItem.example;
-      configItems.add(ConfigItem(enumItem, value));
+      final item=ConfigItem(enumItem, value);
+      configItems[enumItem]=item;
+      //textControllers[enumItem] = TextEditingController();
+      //textControllers[enumItem]!.text = value;
+    }
+  }
+
+  _initTextControllers(configItems, textControllers){
+    for (final enumItem in ConfigEnum.values) {
+      final value=configItems[enumItem].value;
       textControllers[enumItem] = TextEditingController();
       textControllers[enumItem]!.text = value;
     }
+
   }
 
   @override
@@ -177,7 +191,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           child: OctoText('Settings', 40),
         ),
         Divider(),
-        for (final item in configItems)
+        for (final item in configItems.values)
           InputBox(item.itemEnum.label, textControllers[item.itemEnum]!,
               sharedPrefKey: item.itemEnum.key, ref: ref),
         Divider(),
@@ -216,6 +230,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               width: 300,
               height: 200,
               child: OctoButton('on/off', fontSize: 70, onPressed: () {
+                final password=configItems[ConfigEnum.password]!.value;
+                api.connect(password: password);
                 setState(() {
                   isInitialServerRequestSent = true;
                 });
