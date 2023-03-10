@@ -1,0 +1,118 @@
+import 'package:http/http.dart' as http;
+import 'dart:async';
+
+class ApiCallResult<T> {
+  /// 'success' does not represent a boolean API result but whether the call
+  /// went through to the server. Repositorys can be expected to convert
+  /// a success==false in to an exception, and then perhaps a snackbar.
+  ///
+  /// Rather 'data' represents an API result, so if you needed a boolean
+  /// your API would do:
+  ///
+  ///     return ApiCallResult<bool>(true, data: yourBoolean  etc...)
+  ///
+  /// and then the caller of your API, after testing 'success', might
+  /// do
+  ///
+  ///     if(callResult.data){ etc...}
+  ///
+  ApiCallResult(this.success,
+      {this.data, this.errorCode, this.errorString = 'Error'});
+
+  bool success;
+  T? data;
+  String errorString = 'Error';
+  int? errorCode;
+}
+
+class OctoCrabApi {
+  final _client = http.Client();
+
+  init({
+    required String address,
+    required String login_url,
+    required String password,
+    required String on_url,
+    required String off_url,
+    required String next_url,
+    required String prev_url,
+    required String brightness_url,
+  }) {
+    this._address = address;
+    this._password = password;
+    this._login_url = login_url;
+    this._on_url = on_url;
+    this._off_url = off_url;
+    this._next_url = next_url;
+    this._prev_url = prev_url;
+    this._brightness_url = brightness_url;
+  }
+
+  Future<void> dispose() async{
+    _client.close();
+  }
+
+  late String _address;
+  late String _login_url;
+  late String _password;
+  late String _on_url;
+  late String _off_url;
+  late String _next_url;
+  late String _prev_url;
+  late String _brightness_url;
+
+  Future<ApiCallResult> _call(
+    String uri, {
+    String param1 = '',
+    String param2 = '',
+    String param3 = '',
+  }) async {
+    String params = '';
+
+    params=uri.replaceFirst('%s', param1);
+    params=params.replaceFirst('%s', param2);
+    params=params.replaceFirst('%s', param3);
+
+    final link = '$_address?$params';
+    final url = Uri.parse(link);
+
+    final response = await _client
+        .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
+    if (response.statusCode != 200) {
+      return ApiCallResult(false,
+          errorCode: response.statusCode,
+          errorString: response.reasonPhrase ?? 'Error');
+    }
+
+    return ApiCallResult<String>(true,data: response.body);
+  }
+
+  Future<ApiCallResult> connect({String password = ''}) async {
+    return _call(_login_url,param1 : _password);
+  }
+
+
+
+  Future<ApiCallResult> switchOn() async {
+    return _call(_on_url);
+  }
+
+  Future<ApiCallResult> switchOff() async {
+    return _call(_off_url);
+  }
+
+
+  Future<ApiCallResult> next() async {
+    return _call(_next_url);
+  }
+
+  Future<ApiCallResult> previous() async {
+    return _call(_prev_url);
+  }
+
+  Future<ApiCallResult> brightness({int value= 125}) async {
+    return _call(_brightness_url,param1 : value.toString());
+  }
+
+
+}
