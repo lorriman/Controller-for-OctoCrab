@@ -1,4 +1,6 @@
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:http/testing.dart';
 import 'dart:async';
 
 import 'package:http/http.dart';
@@ -28,7 +30,29 @@ class ApiCallResult<T> {
 }
 
 class OctoCrabApi {
-  final _client = http.Client();
+  late http.Client _client;
+
+  OctoCrabApi({bool debug = false}) {
+    if (debug) {
+      _client = MockClient((request) async {
+        if (request.url.query.startsWith( "action=login")) {
+          if (request.url.queryParameters['password'] == '123'){
+            return Response(
+                json.encode({
+                  'numbers': [1, 4, 15, 19, 214]
+                }),
+                200,
+                headers: {'content-type': 'application/json'});
+        } else {
+            return Response("bad username or password", reasonPhrase: "bad username or password", 403);
+          }
+        }
+        return Response("", 404);
+      });
+    } else {
+      _client = http.Client();
+    }
+  }
 
   init({
     required String address,
@@ -50,18 +74,18 @@ class OctoCrabApi {
     this._brightness_url = brightness_url;
   }
 
-  Future<void> dispose() async{
+  Future<void> dispose() async {
     _client.close();
   }
 
-  String _address='';
-   String _login_url='';
-   String _password='';
-   String _on_url='';
-   String _off_url='';
-   String _next_url='';
-   String _prev_url='';
-   String _brightness_url='';
+  String _address = '';
+  String _login_url = '';
+  String _password = '';
+  String _on_url = '';
+  String _off_url = '';
+  String _next_url = '';
+  String _prev_url = '';
+  String _brightness_url = '';
 
   Future<ApiCallResult> _call(
     String uri, {
@@ -70,21 +94,19 @@ class OctoCrabApi {
     String param3 = '',
   }) async {
     String params = '';
-  Response? response;
+    Response? response;
 
-    params=uri.replaceFirst('%s', param1);
-    params=params.replaceFirst('%s', param2);
-    params=params.replaceFirst('%s', param3);
+    params = uri.replaceFirst('%s', param1);
+    params = params.replaceFirst('%s', param2);
+    params = params.replaceFirst('%s', param3);
 
     final link = '$_address?$params';
     final url = Uri.parse(link);
     try {
       response = await _client
           .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
-    } catch(e){
-      return ApiCallResult(false,
-          errorCode: 0,
-          errorString: e.toString());
+    } catch (e) {
+      return ApiCallResult(false, errorCode: 0, errorString: e.toString());
     }
     if (response.statusCode != 200) {
       return ApiCallResult(false,
@@ -92,14 +114,12 @@ class OctoCrabApi {
           errorString: response.reasonPhrase ?? 'Error');
     }
 
-    return ApiCallResult<String>(true,data: response.body);
+    return ApiCallResult<String>(true, data: response.body);
   }
 
   Future<ApiCallResult> connect({String password = ''}) async {
-    return await _call(_login_url,param1 : _password);
+    return await _call(_login_url, param1: _password);
   }
-
-
 
   Future<ApiCallResult> switchOn() async {
     return await _call(_on_url);
@@ -109,7 +129,6 @@ class OctoCrabApi {
     return await _call(_off_url);
   }
 
-
   Future<ApiCallResult> next() async {
     return await _call(_next_url);
   }
@@ -118,9 +137,7 @@ class OctoCrabApi {
     return await _call(_prev_url);
   }
 
-  Future<ApiCallResult> brightness({int value= 125}) async {
-    return await _call(_brightness_url,param1 : value.toString());
+  Future<ApiCallResult> brightness({int value = 125}) async {
+    return await _call(_brightness_url, param1: value.toString());
   }
-
-
 }

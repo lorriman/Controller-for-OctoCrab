@@ -134,7 +134,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   final Map<ConfigEnum, TextEditingController> textControllers = {};
   final Map<ConfigEnum,ConfigItem> configItems={};
-  final OctoCrabApi api = OctoCrabApi();
+  final OctoCrabApi api = OctoCrabApi(debug: true);
 
   @override
   void initState() {
@@ -279,11 +279,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 final password=configItems[ConfigEnum.password]!.value;
                 final result=await api.connect(password: password);
                 if(!result.success){
-                   _snackBar(context,result.errorString);
+                   _snackBar(context,result.errorString+' '+result.errorCode.toString());
+                } else {
+                  setState(() {
+                    isInitialServerRequestSent = true;
+                  });
                 }
-                setState(() {
-                  isInitialServerRequestSent = true;
-                });
               }),
             ),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -476,16 +477,15 @@ class InputBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
+    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+      Flexible(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16,8,16,8),
           child: SizedBox(
             //flex: 1,
               //fit: FlexFit.tight,
               height: 50,
-              width: 250,
+              //width: 250,
               child: TextField(
                 maxLength: maxLength,
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -501,8 +501,8 @@ class InputBox extends StatelessWidget {
                 ),
               )),
         ),
-      ]),
-    );
+      ),
+    ]);
   }
 }
 
