@@ -85,6 +85,7 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 const sharedPrefKey_server = 'api_server';
+const sharedPrefKey_login = 'api_login';
 const sharedPrefKey_password = 'api_password';
 const sharedPrefKey_brightness = 'api_brightness';
 const sharedPrefKey_on = 'api_on';
@@ -98,6 +99,7 @@ enum ConfigEnum {
       key: sharedPrefKey_server,
       label: 'server',
       example: 'example http://192.168.1.100'),
+  login(key: sharedPrefKey_login,label: 'login',example: '?action=login&username=%s&password=%s'),
   password(key: sharedPrefKey_password, label: 'password', example: ''),
   brightness(
       key: sharedPrefKey_brightness,
@@ -140,6 +142,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
     _loadConfig(configItems);
     _initTextControllers(configItems,textControllers);
+    _configureApi(configItems);
+  }
+
+  _snackBar(context,msg){
+    final snackBar = SnackBar(
+      content: Text(msg),
+    );
+
+// Find the ScaffoldMessenger in the widget tree
+// and use it to show a SnackBar.
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _loadConfig(configItems ) {
@@ -164,6 +177,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       textControllers[enumItem] = TextEditingController();
       textControllers[enumItem]!.text = value;
     }
+
+  }
+
+  _configureApi(Map<ConfigEnum,ConfigItem> configItems){
+
+    api.init(
+      address: configItems[ConfigEnum.server]!.value,
+      password: configItems[ConfigEnum.password]!.value,
+      login_url: configItems[ConfigEnum.login]!.value,
+      on_url: configItems[ConfigEnum.switchOn]!.value,
+      off_url: configItems[ConfigEnum.switchOff]!.value,
+      brightness_url: configItems[ConfigEnum.brightness]!.value,
+      next_url: configItems[ConfigEnum.next]!.value,
+      prev_url: configItems[ConfigEnum.prev]!.value,
+    );
 
   }
 
@@ -193,7 +221,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         Divider(),
         for (final item in configItems.values)
           InputBox(item.itemEnum.label, textControllers[item.itemEnum]!,
-              sharedPrefKey: item.itemEnum.key, ref: ref),
+              sharedPrefKey: item.itemEnum.key, ref: ref,
+              onChanged: (value) {
+                String str = value;
+                if (str.length > 2040) {
+                  /* max url length =2048*/
+                  str = str.substring(1, 2040);
+                }
+                final sharedPreferencesService =
+                ref.read(sharedPreferencesServiceProvider);
+                sharedPreferencesService.sharedPreferences
+                    .setString(item.itemEnum.key, str);
+                configItems[item.itemEnum]=ConfigItem(item.itemEnum, str);
+                _configureApi(configItems);
+
+              },
+
+
+
+          ),
         Divider(),
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -229,9 +275,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             SizedBox(
               width: 300,
               height: 200,
-              child: OctoButton('on/off', fontSize: 70, onPressed: () {
+              child: OctoButton('on/off', fontSize: 70, onPressed: () async {
                 final password=configItems[ConfigEnum.password]!.value;
-                api.connect(password: password);
+                final result=await api.connect(password: password);
+                if(!result.success){
+                   _snackBar(context,result.errorString);
+                }
                 setState(() {
                   isInitialServerRequestSent = true;
                 });
@@ -414,6 +463,7 @@ class InputBox extends StatelessWidget {
       required this.ref,
       this.password = false,
       this.maxLength,
+        this.onChanged,
       super.key});
 
   final String label;
@@ -422,6 +472,8 @@ class InputBox extends StatelessWidget {
   final TextEditingController controller;
   final WidgetRef ref;
   final bool password;
+  final ValueChanged<String>? onChanged;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -430,24 +482,16 @@ class InputBox extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
-              height: 55,
-              width: 200,
+            //flex: 1,
+              //fit: FlexFit.tight,
+              height: 50,
+              width: 250,
               child: TextField(
                 maxLength: maxLength,
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
                 maxLines: 1,
                 obscureText: password,
-                onChanged: (value) {
-                  String str = value;
-                  if (str.length > 2040) {
-                    /* max url length =2048*/
-                    str = str.substring(1, 2040);
-                  }
-                  final sharedPreferencesService =
-                      ref.read(sharedPreferencesServiceProvider);
-                  sharedPreferencesService.sharedPreferences
-                      .setString(sharedPrefKey, str);
-                },
+                onChanged : onChanged,
                 controller: controller,
                 decoration: InputDecoration(
                   labelText: label,

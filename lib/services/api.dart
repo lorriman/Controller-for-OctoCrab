@@ -1,6 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
+import 'package:http/http.dart';
+
 class ApiCallResult<T> {
   /// 'success' does not represent a boolean API result but whether the call
   /// went through to the server. Repositorys can be expected to convert
@@ -52,14 +54,14 @@ class OctoCrabApi {
     _client.close();
   }
 
-  late String _address;
-  late String _login_url;
-  late String _password;
-  late String _on_url;
-  late String _off_url;
-  late String _next_url;
-  late String _prev_url;
-  late String _brightness_url;
+  String _address='';
+   String _login_url='';
+   String _password='';
+   String _on_url='';
+   String _off_url='';
+   String _next_url='';
+   String _prev_url='';
+   String _brightness_url='';
 
   Future<ApiCallResult> _call(
     String uri, {
@@ -68,6 +70,7 @@ class OctoCrabApi {
     String param3 = '',
   }) async {
     String params = '';
+  Response? response;
 
     params=uri.replaceFirst('%s', param1);
     params=params.replaceFirst('%s', param2);
@@ -75,9 +78,14 @@ class OctoCrabApi {
 
     final link = '$_address?$params';
     final url = Uri.parse(link);
-
-    final response = await _client
-        .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
+    try {
+      response = await _client
+          .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
+    } catch(e){
+      return ApiCallResult(false,
+          errorCode: 0,
+          errorString: e.toString());
+    }
     if (response.statusCode != 200) {
       return ApiCallResult(false,
           errorCode: response.statusCode,
@@ -88,30 +96,30 @@ class OctoCrabApi {
   }
 
   Future<ApiCallResult> connect({String password = ''}) async {
-    return _call(_login_url,param1 : _password);
+    return await _call(_login_url,param1 : _password);
   }
 
 
 
   Future<ApiCallResult> switchOn() async {
-    return _call(_on_url);
+    return await _call(_on_url);
   }
 
   Future<ApiCallResult> switchOff() async {
-    return _call(_off_url);
+    return await _call(_off_url);
   }
 
 
   Future<ApiCallResult> next() async {
-    return _call(_next_url);
+    return await _call(_next_url);
   }
 
   Future<ApiCallResult> previous() async {
-    return _call(_prev_url);
+    return await _call(_prev_url);
   }
 
   Future<ApiCallResult> brightness({int value= 125}) async {
-    return _call(_brightness_url,param1 : value.toString());
+    return await _call(_brightness_url,param1 : value.toString());
   }
 
 
