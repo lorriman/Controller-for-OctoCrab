@@ -5,15 +5,21 @@ import 'package:flutter/services.dart';
 
 import 'package:http/http.dart' as http;
 
+
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_octocrab/services/api.dart';
 import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
+
+import 'package:simple_octocrab/services/loggingInst.dart';
+import 'package:clipboard/clipboard.dart';
+
 
 final darkModeProvider = StateProvider<bool>((ref) {
   final prefService = ref.read(sharedPreferencesServiceProvider);
@@ -27,6 +33,12 @@ final brightnessProvider = StateProvider<int>((ref) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Logger.root.level = Level.ALL; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
 
   //helps test as phone dimensions when debugging.
   if (kDebugMode && (Platform.isWindows || Platform.isLinux)) {
@@ -130,15 +142,26 @@ class ConfigItem {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-  bool isInitialServerRequestSent = false;
+
 
   final Map<ConfigEnum, TextEditingController> textControllers = {};
   final Map<ConfigEnum,ConfigItem> configItems={};
   final OctoCrabApi api = OctoCrabApi(debug: true);
+  final List<String> loglines=[];
+
+  String _status='';
+  bool _debug=false;
+  bool _connected = false;
+  bool _is_on=false;
 
   @override
   void initState() {
     super.initState();
+    Logger.root.onRecord.listen((record) {
+      loglines.add('${record.level.name}: ${record.time}: ${record.message}');
+    });
+
+
 
     _loadConfig(configItems);
     _initTextControllers(configItems,textControllers);
@@ -153,6 +176,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 // Find the ScaffoldMessenger in the widget tree
 // and use it to show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  _setStatus(String status){
+    setState((){_status=status;});
   }
 
   void _loadConfig(configItems ) {
@@ -205,11 +232,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final darkMode = ref.watch(darkModeProvider);
-
     return Scaffold(
+      floatingActionButton: !_debug ? null : FloatingActionButton(child : Icon(Icons.copy), onPressed : (){
+        FlutterClipboard.copy(loglines.join('\n')).then(( value ) =>
+            print('copied'));
+      }),
       //backgroundColor: Colors.white70,
       appBar: NeumorphicAppBar(
-        title: OctoText(widget.title, 25),
+        title: Row(
+          children: [
+            GestureDetector(child: OctoText("Robert's ",25),
+            onDoubleTap: ()=>setState(()=>_debug=!_debug),),
+            OctoText('controller', 25),
+          ],
+        ),
       ),
       drawer: Drawer(
           child:
@@ -277,37 +313,54 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               height: 200,
               child: OctoButton('on/off', fontSize: 70, onPressed: () async {
                 final password=configItems[ConfigEnum.password]!.value;
+                _setStatus('connecting...');
                 final result=await api.connect(password: password);
                 if(!result.success){
-                   _snackBar(context,result.errorString+' '+result.errorCode.toString());
+                    _setStatus(result.errorString+' '+result.errorCode.toString());
+                   //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                 } else {
+                _setStatus('');
                   setState(() {
-                    isInitialServerRequestSent = true;
+                    _connected = true;
                   });
+                  if (_is_on)
+                    api.switchOff();
+                  else
+                    api.switchOn();
+                  _is_on=!_is_on;
+
                 }
+
+
               }),
             ),
+            if(_status!='') SizedBox(height:70,child:Text(_status)),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
               SizedBox(
                 width: 150,
                 height: 100,
                 child: OctoButton('prev',
                     fontSize: 40,
-                    onPressed: isInitialServerRequestSent ? () {} : null),
+                    onPressed: _connected ? () {
+                      api.previous();
+                    } : null),
               ),
               SizedBox(
                 width: 150,
                 height: 100,
                 child: OctoButton('next',
                     fontSize: 40,
-                    onPressed: isInitialServerRequestSent ? () {} : null),
+                    onPressed: _connected ? () {
+                  api.next();
+                    } : null),
               )
             ]),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: OctoSlider(
-                  enabled: isInitialServerRequestSent,
-                  onChanged: isInitialServerRequestSent
+                  enabled: _connected,
+
+                  onChanged: _connected
                       ? (value) {
                           setState(() {
                             ref.read(brightnessProvider.notifier).state =
@@ -317,9 +370,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               ref.read(sharedPreferencesServiceProvider);
                           sharedPreferencesService.sharedPreferences
                               .setInt('brightness', value.toInt());
+                          api.brightness(value: value.toInt());
                         }
                       : null),
             ),
+            if (_debug) SizedBox( height : 150,
+              child : ListView.builder(itemCount: loglines.length,itemBuilder: (_,idx){
+
+                return SelectableText(loglines[idx]);
+
+              }),
+            )
           ],
         ),
       ),

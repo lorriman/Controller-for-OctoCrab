@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/testing.dart';
 import 'dart:async';
 
+import 'package:simple_octocrab/services/loggingInst.dart';
+
 import 'package:http/http.dart';
 
 class ApiCallResult<T> {
@@ -35,18 +37,58 @@ class OctoCrabApi {
   OctoCrabApi({bool debug = false}) {
     if (debug) {
       _client = MockClient((request) async {
-        if (request.url.query.startsWith( "action=login")) {
-          if (request.url.queryParameters['password'] == '123'){
+        //final query=request.url.query;
+        final params = request.url.queryParameters;
+        final query = request.url.query;
+
+        if (query.startsWith('action=login')) {
+          if (params['password'] == '123') {
             return Response(
                 json.encode({
                   'numbers': [1, 4, 15, 19, 214]
                 }),
                 200,
                 headers: {'content-type': 'application/json'});
-        } else {
-            return Response("bad username or password", reasonPhrase: "bad username or password", 403);
+          } else {
+            return Response(
+                "bad username or password",
+                reasonPhrase: "bad username or password",
+                403);
           }
         }
+
+
+        if (query.startsWith("action=on")) {
+          return Response(
+              json.encode({
+                'numbers': [1, 4, 15, 19, 214]
+              }),
+              200,
+              headers: {'content-type': 'application/json'});
+
+        }
+
+        if (query.startsWith("action=off")) {
+          return Response(
+              json.encode({
+                'numbers': [1, 4, 15, 19, 214]
+              }),
+              200,
+              headers: {'content-type': 'application/json'});
+
+        }
+
+
+        if (query.startsWith("brightness=")) {
+          return Response(
+              json.encode({
+                'numbers': [1, 4, 15, 19, 214]
+              }),
+              200,
+              headers: {'content-type': 'application/json'});
+
+        }
+
         return Response("", 404);
       });
     } else {
@@ -103,12 +145,15 @@ class OctoCrabApi {
     final link = '$_address?$params';
     final url = Uri.parse(link);
     try {
+      log.fine('_client.get initiated : $url');
       response = await _client
           .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
     } catch (e) {
+      log.fine('OctoCrabApi._call exception: '+e.toString()+'\n');
       return ApiCallResult(false, errorCode: 0, errorString: e.toString());
     }
     if (response.statusCode != 200) {
+      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error')+'\n'+response.body);
       return ApiCallResult(false,
           errorCode: response.statusCode,
           errorString: response.reasonPhrase ?? 'Error');
