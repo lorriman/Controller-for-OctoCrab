@@ -34,7 +34,7 @@ class ApiCallResult<T> {
 class OctoCrabApi {
   late http.Client _client;
 
-  OctoCrabApi({bool debug = false}) {
+  OctoCrabApi({required bool debug}) { //required because I forgot about the default
     if (debug) {
       _client = MockClient((request) async {
         //final query=request.url.query;
@@ -136,7 +136,7 @@ class OctoCrabApi {
     String param3 = '',
   }) async {
     String params = '';
-    Response? response;
+    Response response=Response('',404, reasonPhrase: "dummy response object");
 
     params = uri.replaceFirst('%s', param1);
     params = params.replaceFirst('%s', param2);
@@ -148,10 +148,11 @@ class OctoCrabApi {
       log.fine('_client.get initiated : $url');
       response = await _client
           .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
-    } catch (e) {
-      log.fine('OctoCrabApi._call exception: '+e.toString()+'\n');
+    } on ClientException catch ( e, stacktrace) {
+      log.fine('OctoCrabApi._call exception: $e'); //we shouldn't need a stack trace; this is an 'expected' exception
       return ApiCallResult(false, errorCode: 0, errorString: e.toString());
     }
+
     if (response.statusCode != 200) {
       log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error')+response.body);
       return ApiCallResult(false,

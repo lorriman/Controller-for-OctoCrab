@@ -48,7 +48,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum,ConfigItem> _configItems={};
-  final OctoCrabApi _api = OctoCrabApi(debug: true);
+  final OctoCrabApi _api = OctoCrabApi(debug: false);
 
 
   String _status='';
@@ -61,7 +61,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
-/*
+/*  animated scrolling doesn't keep up
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: 350),
@@ -157,7 +157,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       floatingActionButton: !_debug ? null : FloatingActionButton(
           tooltip: 'copy the log to the clipboard',
           child : Icon(Icons.copy), onPressed : (){
-        FlutterClipboard.copy(logLines.fold<String>('',(prev,e)=> '$prev\n${e.line}')).then(( value ) =>
+            int idx=0;
+        FlutterClipboard.copy(logLines.fold<String>('',(prev,e)=> '$prev\n${idx++} ${e.line}')).then(( value ) =>
             _snackBar(context, 'Log copied to clipboard')).catchError((err)=>
           _snackBar(context, 'Copy failed: $err')
         );
@@ -308,7 +309,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   child : ListView.builder(controller: _scrollController  ,
                       itemCount: logLines.length,itemBuilder: (_,idx){
 
-                    return SelectableText(logLines[idx].line);
+                    return SelectableText('${idx} ${logLines[idx].line}');
 
                   }),
                 ),

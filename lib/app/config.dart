@@ -13,12 +13,12 @@ enum ConfigEnum {
       key: sharedPrefKey_server,
       label: 'server',
       example: 'example http://192.168.1.100'),
-  login(key: sharedPrefKey_login,label: 'login',example: '?action=login&username=%s&password=%s'),
+  login(key: sharedPrefKey_login,label: 'login',example: '?action=login&username=CaptainBonkers&password=%s'),
   password(key: sharedPrefKey_password, label: 'password', example: ''),
   brightness(
       key: sharedPrefKey_brightness,
       label: 'brightness',
-      example: '?brightness=255'),
+      example: '?brightness=%s'),
   switchOn(key: sharedPrefKey_on, label: 'switch on', example: '?action=on'),
   switchOff(
       key: sharedPrefKey_off, label: 'switch off', example: '?action=off'),
