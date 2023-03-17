@@ -1,4 +1,3 @@
-
 //import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:simple_octocrab/services/api.dart';
 
@@ -18,7 +18,6 @@ import 'config.dart';
 
 import 'package:simple_octocrab/services/loggingInst.dart';
 
-
 final darkModeProvider = StateProvider<bool>((ref) {
   final prefService = ref.read(sharedPreferencesServiceProvider);
   return prefService.sharedPreferences.getBool('darkMode') ?? false;
@@ -29,8 +28,6 @@ final brightnessProvider = StateProvider<int>((ref) {
   return prefService.sharedPreferences.getInt('brightness') ?? 125;
 });
 
-
-
 class MyHomePage extends ConsumerStatefulWidget {
   MyHomePage({super.key, required this.title});
 
@@ -40,25 +37,19 @@ class MyHomePage extends ConsumerStatefulWidget {
   ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-
-
   final Map<ConfigEnum, TextEditingController> _textControllers = {};
   final ScrollController _scrollController = ScrollController();
 
-  final Map<ConfigEnum,ConfigItem> _configItems={};
+  final Map<ConfigEnum, ConfigItem> _configItems = {};
   final OctoCrabApi _api = OctoCrabApi(debug: false);
 
-
-  String _status='';
-  bool _debug=false;
+  String _status = '';
+  bool _debug = false;
   bool _connected = false;
-  bool _is_on=false;
-
+  bool _is_on = false;
 
   Future<void> _scrollDown() async {
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
 /*  animated scrolling doesn't keep up
@@ -68,9 +59,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         curve: Curves.fastOutSlowIn,
       );*/
       _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-
     });
-
   }
 
   @override
@@ -78,20 +67,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
 
     Logger.root.onRecord.listen((record) {
-      setState((){_scrollDown();});//updates the log view if visible
-
-
-
+      setState(() {
+        _scrollDown();
+      }); //updates the log view if visible
     });
-
-
-
     _loadConfig(_configItems);
-    _initTextControllers(_configItems,_textControllers);
+    _initTextControllers(_configItems, _textControllers);
     _configureApi(_configItems);
   }
 
-  _snackBar(context,msg){
+  @override
+  void dispose() {
+    _textControllers.forEach((key, value) => value.dispose());
+    _textControllers.clear();
+    super.dispose();
+  }
+
+  _snackBar(context, msg) {
     final snackBar = SnackBar(
       content: Text(msg),
     );
@@ -99,12 +91,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  _setStatus(String status){
-    setState((){_status=status;});
+  _setStatus(String status) {
+    setState(() {
+      _status = status;
+    });
   }
 
-  void _loadConfig(configItems ) {
-
+  void _loadConfig(configItems) {
     configItems.clear();
 
     final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
@@ -112,24 +105,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     for (final enumItem in ConfigEnum.values) {
       final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
           enumItem.example;
-      final item=ConfigItem(enumItem, value);
-      configItems[enumItem]=item;
+      final item = ConfigItem(enumItem, value);
+      configItems[enumItem] = item;
       //textControllers[enumItem] = TextEditingController();
       //textControllers[enumItem]!.text = value;
     }
   }
 
-  _initTextControllers(configItems, textControllers){
+  _initTextControllers(configItems, textControllers) {
     for (final enumItem in ConfigEnum.values) {
-      final value=configItems[enumItem].value;
+      final value = configItems[enumItem].value;
       textControllers[enumItem] = TextEditingController();
       textControllers[enumItem]!.text = value;
     }
-
   }
 
-  _configureApi(Map<ConfigEnum,ConfigItem> configItems){
-
+  _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
     _api.init(
       address: configItems[ConfigEnum.server]!.value,
       password: configItems[ConfigEnum.password]!.value,
@@ -140,94 +131,105 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       next_url: configItems[ConfigEnum.next]!.value,
       prev_url: configItems[ConfigEnum.prev]!.value,
     );
-
   }
 
-  @override
-  void dispose() {
-    _textControllers.forEach((key, value) => value.dispose());
-    _textControllers.clear();
-    super.dispose();
+  void _showAboutDialog(BuildContext context) async {
+    final info = await PackageInfo.fromPlatform();
+    showAboutDialog(
+      context: context,
+      applicationName: 'Controller for Octocrab',
+      applicationVersion: 'v. ${info.version.toString()} +${info.buildNumber}',
+      applicationIcon: Icon(Icons.info_outline),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     //final darkMode = ref.watch(darkModeProvider);
     return Scaffold(
-      floatingActionButton: !_debug ? null : FloatingActionButton(
-          tooltip: 'copy the log to the clipboard',
-          child : Icon(Icons.copy), onPressed : (){
-            int idx=0;
-        FlutterClipboard.copy(logLines.fold<String>('',(prev,e)=> '$prev\n${idx++} ${e.line}')).then(( value ) =>
-            _snackBar(context, 'Log copied to clipboard')).catchError((err)=>
-          _snackBar(context, 'Copy failed: $err')
-        );
-      }),
+      floatingActionButton: !_debug
+          ? null
+          : FloatingActionButton(
+              tooltip: 'copy the log to the clipboard',
+              child: Icon(Icons.copy),
+              onPressed: () {
+                int idx = 0;
+                FlutterClipboard.copy(logLines.fold<String>(
+                        '', (prev, e) => '$prev\n${idx++} ${e.line}'))
+                    .then((value) =>
+                        _snackBar(context, 'Log copied to clipboard'))
+                    .catchError(
+                        (err) => _snackBar(context, 'Copy failed: $err'));
+              }),
       //backgroundColor: Colors.white70,
       appBar: NeumorphicAppBar(
         title: Row(
           children: [
-            GestureDetector(child: OctoText("Robert's ",25),
-              onDoubleTap: ()=>setState(()=>_debug=!_debug),),
-            OctoText('controller', 25),
+            GestureDetector(
+              child: OctoText("Robert's ", 25),
+              onDoubleTap: () => setState(() => _debug = !_debug),
+            ),
+            GestureDetector(
+              child: OctoText('controller', 25),
+              onDoubleTap: () => _showAboutDialog(context),
+            ),
           ],
         ),
       ),
       drawer: Drawer(
           child:
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: OctoText('Settings', 40),
-            ),
-            Divider(),
-            for (final item in _configItems.values)
-              InputBox(item.itemEnum.label, _textControllers[item.itemEnum]!,
-                sharedPrefKey: item.itemEnum.key, ref: ref,
-                onChanged: (value) {
-                  String str = value;
-                  if (str.length > 2040) {
-                    /* max url length =2048*/
-                    str = str.substring(1, 2040);
-                  }
-                  final sharedPreferencesService =
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: OctoText('Settings', 40),
+        ),
+        Divider(),
+        for (final item in _configItems.values)
+          InputBox(
+            item.itemEnum.label,
+            _textControllers[item.itemEnum]!,
+            sharedPrefKey: item.itemEnum.key,
+            ref: ref,
+            onChanged: (value) {
+              String str = value;
+              if (str.length > 2040) {
+                /* max url length =2048*/
+                str = str.substring(1, 2040);
+              }
+              final sharedPreferencesService =
                   ref.read(sharedPreferencesServiceProvider);
-                  sharedPreferencesService.sharedPreferences
-                      .setString(item.itemEnum.key, str);
-                  _configItems[item.itemEnum]=ConfigItem(item.itemEnum, str);
-                  _configureApi(_configItems);
-
-                },
-
-
-
-              ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    width: 120,
-                    child: SizedBox(
-                      width: 100,
-                      child: OctoSwitch(
-                          value: ref.watch(darkModeProvider),
-                          onChanged: (value) {
-                            ref.read(darkModeProvider.notifier).state = value;
-                            final sharedPreferencesService =
+              sharedPreferencesService.sharedPreferences
+                  .setString(item.itemEnum.key, str);
+              _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
+              _configureApi(_configItems);
+            },
+          ),
+        Divider(),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                width: 120,
+                child: SizedBox(
+                  width: 100,
+                  child: OctoSwitch(
+                      value: ref.watch(darkModeProvider),
+                      onChanged: (value) {
+                        ref.read(darkModeProvider.notifier).state = value;
+                        final sharedPreferencesService =
                             ref.read(sharedPreferencesServiceProvider);
-                            sharedPreferencesService.sharedPreferences
-                                .setBool('darkMode', value);
-                          }),
-                    ),
-                  ),
-                  OctoText('Dark mode', 20),
-                ],
+                        sharedPreferencesService.sharedPreferences
+                            .setBool('darkMode', value);
+                      }),
+                ),
               ),
-            ),
-          ])),
+              OctoText('Dark mode', 20),
+            ],
+          ),
+        ),
+      ])),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -238,83 +240,99 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               width: 300,
               height: 200,
               child: OctoButton('on/off', fontSize: 70, onPressed: () async {
-                final password=_configItems[ConfigEnum.password]!.value;
+                final password = _configItems[ConfigEnum.password]!.value;
                 _setStatus('connecting...');
-                final result=await _api.connect(password: password);
-                if(!result.success){
-                  _setStatus(result.errorString+' '+result.errorCode.toString());
+                final result = await _api.connect(password: password);
+                if (!result.success) {
+                  _setStatus(
+                      result.errorString + ' ' + result.errorCode.toString());
                   //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                 } else {
                   _setStatus('');
                   setState(() {
                     _connected = true;
                   });
-                  _is_on=!_is_on;
+                  _is_on = !_is_on;
                   if (_is_on)
                     _api.switchOff();
                   else
                     _api.switchOn();
-
-
                 }
-
-
               }),
             ),
-            if(_status!='') SizedBox(height:70,child:Text(_status)),
+            if (_status != '')
+              SizedBox(
+                height: 70,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      _status,
+                      textScaleFactor: 2,
+                    ),
+                    if (_status == 'connecting...')
+                      CircularProgressIndicator(),
+                  ],
+                ),
+              ),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
               SizedBox(
                 width: 150,
                 height: 100,
                 child: OctoButton('prev',
                     fontSize: 40,
-                    onPressed: _connected ? () {
-                      _api.previous();
-                    } : null),
+                    onPressed: _connected
+                        ? () {
+                            _api.previous();
+                          }
+                        : null),
               ),
               SizedBox(
                 width: 150,
                 height: 100,
                 child: OctoButton('next',
                     fontSize: 40,
-                    onPressed: _connected ? () {
-                      _api.next();
-                    } : null),
+                    onPressed: _connected
+                        ? () {
+                            _api.next();
+                          }
+                        : null),
               )
             ]),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: OctoSlider(
                   enabled: _connected,
-
                   onChanged: _connected
                       ? (value) {
-                    setState(() {
-                      ref.read(brightnessProvider.notifier).state =
-                          value.toInt();
-                    });
-                    final sharedPreferencesService =
-                    ref.read(sharedPreferencesServiceProvider);
-                    sharedPreferencesService.sharedPreferences
-                        .setInt('brightness', value.toInt());
-                    _api.brightness(value: value.toInt());
-                  }
+                          setState(() {
+                            ref.read(brightnessProvider.notifier).state =
+                                value.toInt();
+                          });
+                          final sharedPreferencesService =
+                              ref.read(sharedPreferencesServiceProvider);
+                          sharedPreferencesService.sharedPreferences
+                              .setInt('brightness', value.toInt());
+                          _api.brightness(value: value.toInt());
+                        }
                       : null),
             ),
-            if (_debug) Column(
-              children: [
-                Divider(),
-                Text('Log',style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox( height : 150,
-                  child : ListView.builder(controller: _scrollController  ,
-                      itemCount: logLines.length,itemBuilder: (_,idx){
-
-                    return SelectableText('${idx} ${logLines[idx].line}');
-
-                  }),
-                ),
-              ],
-            )
+            if (_debug)
+              Column(
+                children: [
+                  Divider(),
+                  Text('Log', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: logLines.length,
+                        itemBuilder: (_, idx) {
+                          return SelectableText('${idx} ${logLines[idx].line}');
+                        }),
+                  ),
+                ],
+              )
           ],
         ),
       ),
@@ -343,11 +361,11 @@ class OctoSwitch extends ConsumerWidget {
 
 class OctoButton extends StatelessWidget {
   const OctoButton(
-      String this.label, {
-        this.fontSize = 20,
-        this.onPressed,
-        super.key,
-      });
+    String this.label, {
+    this.fontSize = 20,
+    this.onPressed,
+    super.key,
+  });
 
   final double fontSize;
   final String label;
@@ -381,11 +399,11 @@ class OctoButton extends StatelessWidget {
 
 class OctoText extends ConsumerWidget {
   const OctoText(
-      this.text,
-      this.size, {
-        this.disabled = false,
-        super.key,
-      });
+    this.text,
+    this.size, {
+    this.disabled = false,
+    super.key,
+  });
 
   final String text;
   final double size;
@@ -406,7 +424,7 @@ class OctoText extends ConsumerWidget {
           //lightSource: LightSource.topRight,
         ),*/
         textStyle:
-        NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
+            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
     } else if (darkMode) {
       return NeumorphicText(
@@ -419,7 +437,7 @@ class OctoText extends ConsumerWidget {
           //lightSource: LightSource.topRight,
         ), */
         textStyle:
-        NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
+            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
     } else if (disabled) {
       return NeumorphicText(
@@ -432,7 +450,7 @@ class OctoText extends ConsumerWidget {
           //lightSource: LightSource.topRight,
         ),
         textStyle:
-        NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
+            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
     } else {
       return NeumorphicText(
@@ -448,7 +466,7 @@ class OctoText extends ConsumerWidget {
           //oppositeShadowLightSource: true,
         ),
         textStyle:
-        NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
+            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
     }
   }
@@ -457,11 +475,11 @@ class OctoText extends ConsumerWidget {
 class InputBox extends StatelessWidget {
   const InputBox(this.label, this.controller,
       {required this.sharedPrefKey,
-        required this.ref,
-        this.password = false,
-        this.maxLength,
-        this.onChanged,
-        super.key});
+      required this.ref,
+      this.password = false,
+      this.maxLength,
+      this.onChanged,
+      super.key});
 
   final String label;
   final int? maxLength;
@@ -476,10 +494,10 @@ class InputBox extends StatelessWidget {
     return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
       Flexible(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16,8,16,8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: SizedBox(
-            //flex: 1,
-            //fit: FlexFit.tight,
+              //flex: 1,
+              //fit: FlexFit.tight,
               height: 50,
               //width: 250,
               child: TextField(
@@ -487,7 +505,7 @@ class InputBox extends StatelessWidget {
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
                 maxLines: 1,
                 obscureText: password,
-                onChanged : onChanged,
+                onChanged: onChanged,
                 controller: controller,
                 decoration: InputDecoration(
                   labelText: label,
@@ -517,29 +535,29 @@ class OctoSlider extends ConsumerWidget {
     return NeumorphicSlider(
         style: enabled
             ? (ref.watch(darkModeProvider)
-            ? SliderStyle(
-            accent: Colors.black,
-            variant: Colors.black,
-            lightSource: LightSource.bottomLeft,
-            depth: 4)
-            : SliderStyle(
-            accent: Colors.white,
-            variant: Colors.grey,
-            lightSource: LightSource.bottomLeft,
-            depth: 4))
+                ? SliderStyle(
+                    accent: Colors.black,
+                    variant: Colors.black,
+                    lightSource: LightSource.bottomLeft,
+                    depth: 4)
+                : SliderStyle(
+                    accent: Colors.white,
+                    variant: Colors.grey,
+                    lightSource: LightSource.bottomLeft,
+                    depth: 4))
             : (ref.watch(darkModeProvider)
-            ? SliderStyle(
-            disableDepth: true,
-            accent: Colors.black26,
-            variant: Colors.black26,
-            lightSource: LightSource.bottomLeft,
-            depth: 4)
-            : SliderStyle(
-            disableDepth: true,
-            accent: Colors.white,
-            variant: Colors.white,
-            lightSource: LightSource.bottomLeft,
-            depth: 4)),
+                ? SliderStyle(
+                    disableDepth: true,
+                    accent: Colors.black26,
+                    variant: Colors.black26,
+                    lightSource: LightSource.bottomLeft,
+                    depth: 4)
+                : SliderStyle(
+                    disableDepth: true,
+                    accent: Colors.white,
+                    variant: Colors.white,
+                    lightSource: LightSource.bottomLeft,
+                    depth: 4)),
         max: 255,
         min: 1,
         value: ref.watch(brightnessProvider.notifier).state.toDouble(),

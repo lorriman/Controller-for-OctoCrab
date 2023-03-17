@@ -36,6 +36,7 @@ class OctoCrabApi {
 
   OctoCrabApi({required bool debug}) { //required because I forgot about the default
     if (debug) {
+      log.fine('creating mock client');
       _client = MockClient((request) async {
         //final query=request.url.query;
         final params = request.url.queryParameters;
@@ -136,7 +137,7 @@ class OctoCrabApi {
     String param3 = '',
   }) async {
     String params = '';
-    Response response=Response('',404, reasonPhrase: "dummy response object");
+    Response response=Response('dummy body',404, reasonPhrase: "dummy response object");
 
     params = uri.replaceFirst('%s', param1);
     params = params.replaceFirst('%s', param2);
