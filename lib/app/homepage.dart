@@ -44,9 +44,11 @@ class MyHomePage extends ConsumerStatefulWidget {
 class _MyHomePageState extends ConsumerState<MyHomePage> {
 
 
-  final Map<ConfigEnum, TextEditingController> textControllers = {};
-  final Map<ConfigEnum,ConfigItem> configItems={};
-  final OctoCrabApi api = OctoCrabApi(debug: true);
+  final Map<ConfigEnum, TextEditingController> _textControllers = {};
+  final ScrollController _scrollController = ScrollController();
+
+  final Map<ConfigEnum,ConfigItem> _configItems={};
+  final OctoCrabApi _api = OctoCrabApi(debug: true);
 
 
   String _status='';
@@ -54,19 +56,39 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool _connected = false;
   bool _is_on=false;
 
+
+  Future<void> _scrollDown() async {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+/*
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 350),
+        curve: Curves.fastOutSlowIn,
+      );*/
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+
+    });
+
+  }
+
   @override
   void initState() {
     super.initState();
 
     Logger.root.onRecord.listen((record) {
-      setState((){});//updates the log view if visible
+      setState((){_scrollDown();});//updates the log view if visible
+
+
+
     });
 
 
 
-    _loadConfig(configItems);
-    _initTextControllers(configItems,textControllers);
-    _configureApi(configItems);
+    _loadConfig(_configItems);
+    _initTextControllers(_configItems,_textControllers);
+    _configureApi(_configItems);
   }
 
   _snackBar(context,msg){
@@ -108,7 +130,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   _configureApi(Map<ConfigEnum,ConfigItem> configItems){
 
-    api.init(
+    _api.init(
       address: configItems[ConfigEnum.server]!.value,
       password: configItems[ConfigEnum.password]!.value,
       login_url: configItems[ConfigEnum.login]!.value,
@@ -123,8 +145,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   @override
   void dispose() {
-    textControllers.forEach((key, value) => value.dispose());
-    textControllers.clear();
+    _textControllers.forEach((key, value) => value.dispose());
+    _textControllers.clear();
     super.dispose();
   }
 
@@ -158,8 +180,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               child: OctoText('Settings', 40),
             ),
             Divider(),
-            for (final item in configItems.values)
-              InputBox(item.itemEnum.label, textControllers[item.itemEnum]!,
+            for (final item in _configItems.values)
+              InputBox(item.itemEnum.label, _textControllers[item.itemEnum]!,
                 sharedPrefKey: item.itemEnum.key, ref: ref,
                 onChanged: (value) {
                   String str = value;
@@ -171,8 +193,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   ref.read(sharedPreferencesServiceProvider);
                   sharedPreferencesService.sharedPreferences
                       .setString(item.itemEnum.key, str);
-                  configItems[item.itemEnum]=ConfigItem(item.itemEnum, str);
-                  _configureApi(configItems);
+                  _configItems[item.itemEnum]=ConfigItem(item.itemEnum, str);
+                  _configureApi(_configItems);
 
                 },
 
@@ -215,9 +237,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               width: 300,
               height: 200,
               child: OctoButton('on/off', fontSize: 70, onPressed: () async {
-                final password=configItems[ConfigEnum.password]!.value;
+                final password=_configItems[ConfigEnum.password]!.value;
                 _setStatus('connecting...');
-                final result=await api.connect(password: password);
+                final result=await _api.connect(password: password);
                 if(!result.success){
                   _setStatus(result.errorString+' '+result.errorCode.toString());
                   //_snackBar(context,result.errorString+' '+result.errorCode.toString());
@@ -228,9 +250,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   });
                   _is_on=!_is_on;
                   if (_is_on)
-                    api.switchOff();
+                    _api.switchOff();
                   else
-                    api.switchOn();
+                    _api.switchOn();
 
 
                 }
@@ -246,7 +268,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: OctoButton('prev',
                     fontSize: 40,
                     onPressed: _connected ? () {
-                      api.previous();
+                      _api.previous();
                     } : null),
               ),
               SizedBox(
@@ -255,7 +277,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: OctoButton('next',
                     fontSize: 40,
                     onPressed: _connected ? () {
-                      api.next();
+                      _api.next();
                     } : null),
               )
             ]),
@@ -274,7 +296,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     ref.read(sharedPreferencesServiceProvider);
                     sharedPreferencesService.sharedPreferences
                         .setInt('brightness', value.toInt());
-                    api.brightness(value: value.toInt());
+                    _api.brightness(value: value.toInt());
                   }
                       : null),
             ),
@@ -283,7 +305,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 Divider(),
                 Text('Log',style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox( height : 150,
-                  child : ListView.builder(itemCount: logLines.length,itemBuilder: (_,idx){
+                  child : ListView.builder(controller: _scrollController  ,
+                      itemCount: logLines.length,itemBuilder: (_,idx){
 
                     return SelectableText(logLines[idx].line);
 
