@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:simple_octocrab/services/loggingInst.dart';
 import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
@@ -27,6 +28,19 @@ void main() async {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
+  Logger.root.onRecord.listen((record) {
+    logLines.add(LogLine(record.level,'${record.level.name}: ${record.time}: ${record.message}'));
+  });
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    logLines.add(LogLine(Level.SEVERE,'${details.exceptionAsString()} trace:\n ${details.stack} \nENDTRACE'));
+
+  };
+  PlatformDispatcher.instance.onError = (error, StackTrace stack) {
+    logLines.add(LogLine(Level.SEVERE,'$error trace:\n $stack \nENDTRACE'));
+    return false;
+  };
 
   //helps test as phone dimensions when debugging.
   if (kDebugMode && (Platform.isWindows || Platform.isLinux)) {
@@ -60,12 +74,12 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: true,
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
-      /*theme: NeumorphicThemeData(
+      theme: NeumorphicThemeData(
         baseColor: Colors.white70, //(0xFFFFFFFF),
         appBarTheme: NeumorphicAppBarThemeData(color: Colors.white60),
         lightSource: LightSource.topLeft,
-        depth: 40,
-      ),*/
+        //depth: 10,
+      ),
       /*
       theme: ThemeData(
         primarySwatch: Colors.blue,

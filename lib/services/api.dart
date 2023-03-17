@@ -153,7 +153,7 @@ class OctoCrabApi {
       return ApiCallResult(false, errorCode: 0, errorString: e.toString());
     }
     if (response.statusCode != 200) {
-      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error')+'\n'+response.body);
+      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error')+response.body);
       return ApiCallResult(false,
           errorCode: response.statusCode,
           errorString: response.reasonPhrase ?? 'Error');

@@ -47,7 +47,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final Map<ConfigEnum, TextEditingController> textControllers = {};
   final Map<ConfigEnum,ConfigItem> configItems={};
   final OctoCrabApi api = OctoCrabApi(debug: true);
-  final List<String> loglines=[];
+
 
   String _status='';
   bool _debug=false;
@@ -57,8 +57,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void initState() {
     super.initState();
+
     Logger.root.onRecord.listen((record) {
-      loglines.add('${record.level.name}: ${record.time}: ${record.message}');
+      setState((){});//updates the log view if visible
     });
 
 
@@ -73,8 +74,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       content: Text(msg),
     );
 
-// Find the ScaffoldMessenger in the widget tree
-// and use it to show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
@@ -133,9 +132,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   Widget build(BuildContext context) {
     //final darkMode = ref.watch(darkModeProvider);
     return Scaffold(
-      floatingActionButton: !_debug ? null : FloatingActionButton(child : Icon(Icons.copy), onPressed : (){
-        FlutterClipboard.copy(loglines.join('\n')).then(( value ) =>
-            log.fine('copied'));
+      floatingActionButton: !_debug ? null : FloatingActionButton(
+          tooltip: 'copy the log to the clipboard',
+          child : Icon(Icons.copy), onPressed : (){
+        FlutterClipboard.copy(logLines.fold<String>('',(prev,e)=> '$prev\n${e.line}')).then(( value ) =>
+            _snackBar(context, 'Log copied to clipboard')).catchError((err)=>
+          _snackBar(context, 'Copy failed: $err')
+        );
       }),
       //backgroundColor: Colors.white70,
       appBar: NeumorphicAppBar(
@@ -275,12 +278,18 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   }
                       : null),
             ),
-            if (_debug) SizedBox( height : 150,
-              child : ListView.builder(itemCount: loglines.length,itemBuilder: (_,idx){
+            if (_debug) Column(
+              children: [
+                Divider(),
+                Text('Log',style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox( height : 150,
+                  child : ListView.builder(itemCount: logLines.length,itemBuilder: (_,idx){
 
-                return SelectableText(loglines[idx]);
+                    return SelectableText(logLines[idx].line);
 
-              }),
+                  }),
+                ),
+              ],
             )
           ],
         ),
