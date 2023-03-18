@@ -144,7 +144,12 @@ class OctoCrabApi {
     params = params.replaceFirst('%s', param3);
 
     final link = '$_address?$params';
-    final url = Uri.parse(link);
+    final url = Uri.tryParse(link);
+    if (url==null){
+      return ApiCallResult(false,
+          errorCode: -1,
+          errorString: 'bad url\n"$link"\ncheck your settings');
+    }
     try {
       log.fine('_client.get initiated : $url');
       response = await _client

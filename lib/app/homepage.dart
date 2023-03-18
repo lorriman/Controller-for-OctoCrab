@@ -178,7 +178,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       ),
       drawer: Drawer(
           child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SingleChildScrollView(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: OctoText('Settings', 40),
@@ -191,17 +192,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             sharedPrefKey: item.itemEnum.key,
             ref: ref,
             onChanged: (value) {
-              String str = value;
-              if (str.length > 2040) {
-                /* max url length =2048*/
-                str = str.substring(1, 2040);
-              }
-              final sharedPreferencesService =
-                  ref.read(sharedPreferencesServiceProvider);
-              sharedPreferencesService.sharedPreferences
-                  .setString(item.itemEnum.key, str);
-              _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
-              _configureApi(_configItems);
+                String str = value;
+                if (str.length > 2040) {
+                  /* max url length =2048*/
+                  str = str.substring(1, 2040);
+                }
+                final sharedPreferencesService =
+                    ref.read(sharedPreferencesServiceProvider);
+                sharedPreferencesService.sharedPreferences
+                    .setString(item.itemEnum.key, str);
+                _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
+                _configureApi(_configItems);
             },
           ),
         Divider(),
@@ -209,29 +210,33 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Container(
-                alignment: Alignment.centerLeft,
-                width: 120,
-                child: SizedBox(
-                  width: 100,
-                  child: OctoSwitch(
-                      value: ref.watch(darkModeProvider),
-                      onChanged: (value) {
-                        ref.read(darkModeProvider.notifier).state = value;
-                        final sharedPreferencesService =
-                            ref.read(sharedPreferencesServiceProvider);
-                        sharedPreferencesService.sharedPreferences
-                            .setBool('darkMode', value);
-                      }),
+                Container(
+                  alignment: Alignment.centerLeft,
+                  width: 120,
+                  child: SizedBox(
+                    width: 100,
+                    child: OctoSwitch(
+                        value: ref.read(darkModeProvider),//flicker?
+                        onChanged: (value) {
+                          ref.read(darkModeProvider.notifier).state = value;
+                          final sharedPreferencesService =
+                              ref.read(sharedPreferencesServiceProvider);
+                          sharedPreferencesService.sharedPreferences
+                              .setBool('darkMode', value);
+                        }),
+                  ),
                 ),
-              ),
-              OctoText('Dark mode', 20),
+                OctoText('Dark mode', 20),
             ],
           ),
         ),
-      ])),
-      body: Center(
-        child: Column(
+      ]),
+              )),
+      body: CustomScrollView(
+    slivers: [
+    SliverFillRemaining(
+    hasScrollBody: true,
+        child: Column(//mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -261,14 +266,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               }),
             ),
             if (_status != '')
-              SizedBox(
-                height: 70,
+              Padding(
+                padding: const EdgeInsets.only(left:16.0, right: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      _status,
-                      textScaleFactor: 2,
+                    Container(constraints: BoxConstraints(maxWidth: 400),
+                      child: Text(overflow: TextOverflow.ellipsis,
+                        _status,
+                        textScaleFactor: 1.5,
+                      ),
                     ),
                     if (_status == 'connecting...')
                       CircularProgressIndicator(),
@@ -323,7 +330,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   Divider(),
                   Text('Log', style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(
-                    height: 150,
+                    height: 210,
                     child: ListView.builder(
                         controller: _scrollController,
                         itemCount: logLines.length,
@@ -335,8 +342,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               )
           ],
         ),
-      ),
-    );
+      )],
+    ));
   }
 }
 
@@ -501,6 +508,7 @@ class InputBox extends StatelessWidget {
               height: 50,
               //width: 250,
               child: TextField(
+
                 maxLength: maxLength,
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
                 maxLines: 1,
@@ -508,6 +516,11 @@ class InputBox extends StatelessWidget {
                 onChanged: onChanged,
                 controller: controller,
                 decoration: InputDecoration(
+                  contentPadding: EdgeInsets.only(left : 8, right : 8), // Removes padding
+                  //isDense: true,                   // Centers the text
+                  //border: InputBorder.none,
+                  //hintText: placeholder,
+                  //hintStyle: TextStyle(color: Theme.of(context).hintColor),
                   labelText: label,
                   border: OutlineInputBorder(
                     borderSide: BorderSide(width: 1),

@@ -86,7 +86,7 @@ class MyApp extends ConsumerWidget {
         baseColor: Colors.white70, //(0xFFFFFFFF),
         appBarTheme: NeumorphicAppBarThemeData(color: Colors.white60),
         lightSource: LightSource.topLeft,
-        //depth: 10,
+        depth: 20,
       ),
       /*
       theme: ThemeData(
