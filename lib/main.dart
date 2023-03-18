@@ -43,12 +43,20 @@ void main() async {
   };
 
   //helps test as phone dimensions when debugging.
-  if (kDebugMode && (Platform.isWindows || Platform.isLinux)) {
-    setWindowMaxSize(const Size(384, 700));
-    setWindowMinSize(const Size(384, 700));
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+
+    if(kDebugMode) {
+      setWindowMaxSize(const Size(384, 700));
+      setWindowMinSize(const Size(384, 700));
+    } else {
+      //setWindowMaxSize(const Size(384, 700));
+      setWindowMinSize(const Size(384, 700));
+
+    }
     //setWindowMaxSize(const Size(700, 384));
     //setWindowMinSize(const Size(700, 384));
-    Rect.fromLTRB(1502.0, 133.0, 1886.0, 933.0);
+    //Rect.fromLTRB(1502.0, 133.0, 1886.0, 933.0);
+    //setWindowFrame(Rect frame)
   }
 
   final sharedPreferences = await SharedPreferences.getInstance();
