@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,10 +14,7 @@ import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
 
-
 import 'app/homepage.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,29 +25,35 @@ void main() async {
   });
 
   Logger.root.onRecord.listen((record) {
-    logLines.add(LogLine(record.level,'${record.level.name}: ${record.time}: ${record.message}'));
+    logLines.add(LogLine(record.level,
+        '${record.level.name}: ${record.time}: ${record.message}'));
   });
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    logLines.add(LogLine(Level.SEVERE,'Flutter Exception "${details.exceptionAsString()}",'+ (details.stack!=null ? ' STARTTRACE:\n${details.stack} ENDTRACE':'')));
-
+    logLines.add(LogLine(
+        Level.SEVERE,
+        'Flutter Exception "${details.exceptionAsString()}",' +
+            (details.stack != null
+                ? ' STARTTRACE:\n${details.stack} ENDTRACE'
+                : '')));
   };
   PlatformDispatcher.instance.onError = (error, StackTrace stack) {
-    logLines.add(LogLine(Level.SEVERE,'Platform or developer exception: "$error",'+ (stack!=null ? 'STARTTRACE:\n$stack ENDTRACE' :'')));
+    logLines.add(LogLine(
+        Level.SEVERE,
+        'Platform or developer exception: "$error",' +
+            (stack != null ? 'STARTTRACE:\n$stack ENDTRACE' : '')));
     return false;
   };
 
   //helps test as phone dimensions when debugging.
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-
-    if(kDebugMode) {
+    if (kDebugMode) {
       setWindowMaxSize(const Size(384, 700));
       setWindowMinSize(const Size(384, 700));
     } else {
       //setWindowMaxSize(const Size(384, 700));
       setWindowMinSize(const Size(384, 700));
-
     }
     //setWindowMaxSize(const Size(700, 384));
     //setWindowMinSize(const Size(700, 384));
@@ -61,14 +63,35 @@ void main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  runApp(ProviderScope(overrides: [
-    sharedPreferencesServiceProvider.overrideWithValue(
-      SharedPreferencesService(sharedPreferences),
-    ),
-  ], child: MyApp()));
-
+  SystemChrome.setPreferredOrientations(
+    [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ],
+  ).then((val) {
+    runApp(ProviderScope(overrides: [
+      sharedPreferencesServiceProvider.overrideWithValue(
+        SharedPreferencesService(sharedPreferences),
+      ),
+    ], child: MyApp()));
+  });
 //  runApp(const MyApp());
 }
+
+/*
+ SystemChrome.setPreferredOrientations(
+    [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ],
+  ).then((val) {
+    runApp(ProviderScope(overrides: [
+      sharedPreferencesServiceProvider.overrideWithValue(
+        SharedPreferencesService(sharedPreferences),
+      ),
+    ], child: MyApp()));
+  });
+ */
 
 class MyApp extends ConsumerWidget {
   MyApp({super.key});
@@ -96,6 +119,3 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
-
-
-

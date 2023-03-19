@@ -147,205 +147,216 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   Widget build(BuildContext context) {
     //final darkMode = ref.watch(darkModeProvider);
     return Scaffold(
-      floatingActionButton: !_debug
-          ? null
-          : FloatingActionButton(
-              tooltip: 'copy the log to the clipboard',
-              child: Icon(Icons.copy),
-              onPressed: () {
-                int idx = 0;
-                FlutterClipboard.copy(logLines.fold<String>(
-                        '', (prev, e) => '$prev\n${idx++} ${e.line}'))
-                    .then((value) =>
-                        _snackBar(context, 'Log copied to clipboard'))
-                    .catchError(
-                        (err) => _snackBar(context, 'Copy failed: $err'));
-              }),
-      //backgroundColor: Colors.white70,
-      appBar: NeumorphicAppBar(
-        title: Row(
-          children: [
-            GestureDetector(
-              child: OctoText("Robert's ", 25),
-              onDoubleTap: () => setState(() => _debug = !_debug),
-            ),
-            GestureDetector(
-              child: OctoText('controller', 25),
-              onDoubleTap: () => _showAboutDialog(context),
-            ),
-          ],
+        floatingActionButton: !_debug
+            ? null
+            : FloatingActionButton(
+                tooltip: 'copy the log to the clipboard',
+                child: Icon(Icons.copy),
+                onPressed: () {
+                  int idx = 0;
+                  FlutterClipboard.copy(logLines.fold<String>(
+                          '', (prev, e) => '$prev\n${idx++} ${e.line}'))
+                      .then((value) =>
+                          _snackBar(context, 'Log copied to clipboard'))
+                      .catchError(
+                          (err) => _snackBar(context, 'Copy failed: $err'));
+                }),
+        //backgroundColor: Colors.white70,
+        appBar: NeumorphicAppBar(
+          title: Row(
+            children: [
+              GestureDetector(
+                child: OctoText("Robert's ", 25),
+                onDoubleTap: () => setState(() => _debug = !_debug),
+              ),
+              GestureDetector(
+                child: OctoText('controller', 25),
+                onDoubleTap: () => _showAboutDialog(context),
+              ),
+            ],
+          ),
         ),
-      ),
-      drawer: SafeArea(
-        child: Drawer(
+        drawer: SafeArea(
+          child: Drawer(
+              child: SingleChildScrollView(
             child:
-                SingleChildScrollView(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: OctoText('Settings', 40),
-          ),
-          Divider(),
-          for (final item in _configItems.values)
-            InputBox(
-              item.itemEnum.label,
-              _textControllers[item.itemEnum]!,
-              sharedPrefKey: item.itemEnum.key,
-              ref: ref,
-              onChanged: (value) {
-                  String str = value;
-                  if (str.length > 2040) {
-                    /* max url length =2048*/
-                    str = str.substring(1, 2040);
-                  }
-                  final sharedPreferencesService =
-                      ref.read(sharedPreferencesServiceProvider);
-                  sharedPreferencesService.sharedPreferences
-                      .setString(item.itemEnum.key, str);
-                  _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
-                  _configureApi(_configItems);
-              },
-            ),
-          Divider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    width: 120,
-                    child: SizedBox(
-                      width: 100,
-                      child: OctoSwitch(
-                          value: ref.read(darkModeProvider),//flicker?
-                          onChanged: (value) {
-                            ref.read(darkModeProvider.notifier).state = value;
-                            final sharedPreferencesService =
-                                ref.read(sharedPreferencesServiceProvider);
-                            sharedPreferencesService.sharedPreferences
-                                .setBool('darkMode', value);
-                          }),
-                    ),
-                  ),
-                  OctoText('Dark mode', 20),
-              ],
-            ),
-          ),
-        ]),
-                )),
-      ),
-      body: CustomScrollView(
-    slivers: [
-    SliverFillRemaining(
-    hasScrollBody: true,
-        child: Column(//mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            //OctoText('TEST',100),
-            SizedBox(
-              width: 300,
-              height: 200,
-              child: OctoButton('on/off', fontSize: 70, onPressed: () async {
-                final password = _configItems[ConfigEnum.password]!.value;
-                _setStatus('connecting...');
-                final result = await _api.connect(password: password);
-                if (!result.success) {
-                  _setStatus(
-                      result.errorString + ' ' + result.errorCode.toString());
-                  //_snackBar(context,result.errorString+' '+result.errorCode.toString());
-                } else {
-                  _setStatus('');
-                  setState(() {
-                    _connected = true;
-                  });
-                  _is_on = !_is_on;
-                  if (_is_on)
-                    _api.switchOff();
-                  else
-                    _api.switchOn();
-                }
-              }),
-            ),
-            if (_status != '')
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Padding(
-                padding: const EdgeInsets.only(left:16.0, right: 16),
+                padding: const EdgeInsets.all(8.0),
+                child: OctoText('Settings', 40),
+              ),
+              Divider(),
+              for (final item in _configItems.values)
+                InputBox(
+                  item.itemEnum.label,
+                  _textControllers[item.itemEnum]!,
+                  sharedPrefKey: item.itemEnum.key,
+                  ref: ref,
+                  onChanged: (value) {
+                    String str = value;
+                    if (str.length > 2040) {
+                      /* max url length =2048*/
+                      str = str.substring(1, 2040);
+                    }
+                    final sharedPreferencesService =
+                        ref.read(sharedPreferencesServiceProvider);
+                    sharedPreferencesService.sharedPreferences
+                        .setString(item.itemEnum.key, str);
+                    _configItems[item.itemEnum] =
+                        ConfigItem(item.itemEnum, str);
+                    _configureApi(_configItems);
+                  },
+                ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(constraints: BoxConstraints(maxWidth: 320),
-                      child: Text(overflow: TextOverflow.ellipsis,
-                        _status,
-                        textScaleFactor: 1.5,
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      width: 120,
+                      child: SizedBox(
+                        width: 100,
+                        child: OctoSwitch(
+                            value: ref.read(darkModeProvider), //flicker?
+                            onChanged: (value) {
+                              ref.read(darkModeProvider.notifier).state = value;
+                              final sharedPreferencesService =
+                                  ref.read(sharedPreferencesServiceProvider);
+                              sharedPreferencesService.sharedPreferences
+                                  .setBool('darkMode', value);
+                            }),
                       ),
                     ),
-                    if (_status == 'connecting...')
-                      CircularProgressIndicator(),
+                    OctoText('Dark mode', 20),
                   ],
                 ),
               ),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              SizedBox(
-                width: 150,
-                height: 100,
-                child: OctoButton('prev',
-                    fontSize: 40,
-                    onPressed: _connected
-                        ? () {
-                            _api.previous();
-                          }
-                        : null),
-              ),
-              SizedBox(
-                width: 150,
-                height: 100,
-                child: OctoButton('next',
-                    fontSize: 40,
-                    onPressed: _connected
-                        ? () {
-                            _api.next();
-                          }
-                        : null),
-              )
             ]),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: OctoSlider(
-                  enabled: _connected,
-                  onChanged: _connected
-                      ? (value) {
-                          setState(() {
-                            ref.read(brightnessProvider.notifier).state =
-                                value.toInt();
-                          });
-                          final sharedPreferencesService =
-                              ref.read(sharedPreferencesServiceProvider);
-                          sharedPreferencesService.sharedPreferences
-                              .setInt('brightness', value.toInt());
-                          _api.brightness(value: value.toInt());
-                        }
-                      : null),
-            ),
-            if (_debug)
-              Column(
-                children: [
-                  Divider(),
-                  Text('Log', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(
-                    height: 190,
-                    child: ListView.builder(
-                        controller: _scrollController,
-                        itemCount: logLines.length,
-                        itemBuilder: (_, idx) {
-                          return SelectableText('${idx} ${logLines[idx].line}');
-                        }),
-                  ),
-                ],
-              )
-          ],
+          )),
         ),
-      )],
-    ));
+        body: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: true,
+              child: Column(
+                //mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  //OctoText('TEST',100),
+                  SizedBox(
+                    width: 300,
+                    height: 200,
+                    child:
+                        OctoButton('on/off', fontSize: 70, onPressed: () async {
+                      final password = _configItems[ConfigEnum.password]!.value;
+                      _setStatus('connecting...');
+                      final result = await _api.connect(password: password);
+                      if (!result.success) {
+                        _setStatus(result.errorString +
+                            ' ' +
+                            result.errorCode.toString());
+                        //_snackBar(context,result.errorString+' '+result.errorCode.toString());
+                      } else {
+                        _setStatus('');
+                        setState(() {
+                          _connected = true;
+                        });
+                        _is_on = !_is_on;
+                        if (_is_on)
+                          _api.switchOff();
+                        else
+                          _api.switchOn();
+                      }
+                    }),
+                  ),
+                  if (_status != '')
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(maxWidth: 320),
+                            child: Text(
+                              overflow: TextOverflow.ellipsis,
+                              _status,
+                              textScaleFactor: 1.5,
+                            ),
+                          ),
+                          if (_status == 'connecting...')
+                            CircularProgressIndicator(),
+                        ],
+                      ),
+                    ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: 150,
+                          height: 100,
+                          child: OctoButton('prev',
+                              fontSize: 40,
+                              onPressed: _connected
+                                  ? () {
+                                      _api.previous();
+                                    }
+                                  : null),
+                        ),
+                        SizedBox(
+                          width: 150,
+                          height: 100,
+                          child: OctoButton('next',
+                              fontSize: 40,
+                              onPressed: _connected
+                                  ? () {
+                                      _api.next();
+                                    }
+                                  : null),
+                        )
+                      ]),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: OctoSlider(
+                        enabled: _connected,
+                        onChanged: _connected
+                            ? (value) {
+                                setState(() {
+                                  ref.read(brightnessProvider.notifier).state =
+                                      value.toInt();
+                                });
+                                final sharedPreferencesService =
+                                    ref.read(sharedPreferencesServiceProvider);
+                                sharedPreferencesService.sharedPreferences
+                                    .setInt('brightness', value.toInt());
+                                _api.brightness(value: value.toInt());
+                              }
+                            : null),
+                  ),
+                  if (_debug)
+                    Column(
+                      children: [
+                        Divider(),
+                        Text('Log',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(
+                          height: 190,
+                          child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: logLines.length,
+                              itemBuilder: (_, idx) {
+                                return SelectableText(
+                                    '${idx} ${logLines[idx].line}');
+                              }),
+                        ),
+                      ],
+                    )
+                ],
+              ),
+            )
+          ],
+        ));
   }
 }
 
@@ -510,7 +521,6 @@ class InputBox extends StatelessWidget {
               height: 50,
               //width: 250,
               child: TextField(
-
                 maxLength: maxLength,
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
                 maxLines: 1,
@@ -518,7 +528,8 @@ class InputBox extends StatelessWidget {
                 onChanged: onChanged,
                 controller: controller,
                 decoration: InputDecoration(
-                  contentPadding: EdgeInsets.only(left : 8, right : 8), // Removes padding
+                  contentPadding:
+                      EdgeInsets.only(left: 8, right: 8), // Removes padding
                   //isDense: true,                   // Centers the text
                   //border: InputBorder.none,
                   //hintText: placeholder,
