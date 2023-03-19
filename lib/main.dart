@@ -34,11 +34,11 @@ void main() async {
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    logLines.add(LogLine(Level.SEVERE,'Flutter Exception "${details.exceptionAsString()}", STARTTRACE:\n${details.stack} ENDTRACE'));
+    logLines.add(LogLine(Level.SEVERE,'Flutter Exception "${details.exceptionAsString()}",'+ (details.stack!=null ? ' STARTTRACE:\n${details.stack} ENDTRACE':'')));
 
   };
   PlatformDispatcher.instance.onError = (error, StackTrace stack) {
-    logLines.add(LogLine(Level.SEVERE,'Platform or developer exception: "$error", STARTTRACE:\n$stack ENDTRACE'));
+    logLines.add(LogLine(Level.SEVERE,'Platform or developer exception: "$error",'+ (stack!=null ? 'STARTTRACE:\n$stack ENDTRACE' :'')));
     return false;
   };
 

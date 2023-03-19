@@ -271,7 +271,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(constraints: BoxConstraints(maxWidth: 400),
+                    Container(constraints: BoxConstraints(maxWidth: 320),
                       child: Text(overflow: TextOverflow.ellipsis,
                         _status,
                         textScaleFactor: 1.5,
@@ -330,7 +330,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   Divider(),
                   Text('Log', style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(
-                    height: 210,
+                    height: 190,
                     child: ListView.builder(
                         controller: _scrollController,
                         itemCount: logLines.length,
