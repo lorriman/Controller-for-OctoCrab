@@ -143,7 +143,7 @@ class OctoCrabApi {
     params = params.replaceFirst('%s', param2);
     params = params.replaceFirst('%s', param3);
 
-    final link = '$_address?$params';
+    final link = '$_address$params';
     final url = Uri.tryParse(link);
     if (url==null){
       return ApiCallResult(false,
