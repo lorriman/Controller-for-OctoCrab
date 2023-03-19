@@ -7,3 +7,5 @@ A controller for Octocrab
  fix flicker
  
  rename app on android
+ 
+ fix unreliable log double-tap
