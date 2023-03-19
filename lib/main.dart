@@ -83,7 +83,7 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
-        baseColor: Colors.white70, //(0xFFFFFFFF),
+        baseColor: Color(0xEEFFFFFF), //(0xFFFFFFFF),
         appBarTheme: NeumorphicAppBarThemeData(color: Colors.white60),
         lightSource: LightSource.topLeft,
         depth: 20,

@@ -176,62 +176,64 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ],
         ),
       ),
-      drawer: Drawer(
-          child:
-              SingleChildScrollView(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: OctoText('Settings', 40),
-        ),
-        Divider(),
-        for (final item in _configItems.values)
-          InputBox(
-            item.itemEnum.label,
-            _textControllers[item.itemEnum]!,
-            sharedPrefKey: item.itemEnum.key,
-            ref: ref,
-            onChanged: (value) {
-                String str = value;
-                if (str.length > 2040) {
-                  /* max url length =2048*/
-                  str = str.substring(1, 2040);
-                }
-                final sharedPreferencesService =
-                    ref.read(sharedPreferencesServiceProvider);
-                sharedPreferencesService.sharedPreferences
-                    .setString(item.itemEnum.key, str);
-                _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
-                _configureApi(_configItems);
-            },
+      drawer: SafeArea(
+        child: Drawer(
+            child:
+                SingleChildScrollView(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: OctoText('Settings', 40),
           ),
-        Divider(),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-                Container(
-                  alignment: Alignment.centerLeft,
-                  width: 120,
-                  child: SizedBox(
-                    width: 100,
-                    child: OctoSwitch(
-                        value: ref.read(darkModeProvider),//flicker?
-                        onChanged: (value) {
-                          ref.read(darkModeProvider.notifier).state = value;
-                          final sharedPreferencesService =
-                              ref.read(sharedPreferencesServiceProvider);
-                          sharedPreferencesService.sharedPreferences
-                              .setBool('darkMode', value);
-                        }),
+          Divider(),
+          for (final item in _configItems.values)
+            InputBox(
+              item.itemEnum.label,
+              _textControllers[item.itemEnum]!,
+              sharedPrefKey: item.itemEnum.key,
+              ref: ref,
+              onChanged: (value) {
+                  String str = value;
+                  if (str.length > 2040) {
+                    /* max url length =2048*/
+                    str = str.substring(1, 2040);
+                  }
+                  final sharedPreferencesService =
+                      ref.read(sharedPreferencesServiceProvider);
+                  sharedPreferencesService.sharedPreferences
+                      .setString(item.itemEnum.key, str);
+                  _configItems[item.itemEnum] = ConfigItem(item.itemEnum, str);
+                  _configureApi(_configItems);
+              },
+            ),
+          Divider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    width: 120,
+                    child: SizedBox(
+                      width: 100,
+                      child: OctoSwitch(
+                          value: ref.read(darkModeProvider),//flicker?
+                          onChanged: (value) {
+                            ref.read(darkModeProvider.notifier).state = value;
+                            final sharedPreferencesService =
+                                ref.read(sharedPreferencesServiceProvider);
+                            sharedPreferencesService.sharedPreferences
+                                .setBool('darkMode', value);
+                          }),
+                    ),
                   ),
-                ),
-                OctoText('Dark mode', 20),
-            ],
+                  OctoText('Dark mode', 20),
+              ],
+            ),
           ),
-        ),
-      ]),
-              )),
+        ]),
+                )),
+      ),
       body: CustomScrollView(
     slivers: [
     SliverFillRemaining(
