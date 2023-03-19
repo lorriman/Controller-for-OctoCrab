@@ -192,6 +192,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   _textControllers[item.itemEnum]!,
                   sharedPrefKey: item.itemEnum.key,
                   ref: ref,
+                  password: item.itemEnum.key==sharedPrefKey_password,
                   onChanged: (value) {
                     String str = value;
                     if (str.length > 2040) {
@@ -278,9 +279,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
-                            constraints: BoxConstraints(maxWidth: 320),
+                            constraints: BoxConstraints(maxWidth: 300),
+                            height: 100,
                             child: Text(
+                              maxLines: 4,
                               overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                               _status,
                               textScaleFactor: 1.5,
                             ),
@@ -341,14 +345,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         Text('Log',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(
-                          height: 190,
-                          child: ListView.builder(
-                              controller: _scrollController,
-                              itemCount: logLines.length,
-                              itemBuilder: (_, idx) {
-                                return SelectableText(
-                                    '${idx} ${logLines[idx].line}');
-                              }),
+                          height: 140,
+                          child: Scrollbar(trackVisibility: true ,
+                            thickness: 10,
+                            thumbVisibility: true,
+                            controller: _scrollController,
+                            child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: logLines.length,
+                                itemBuilder: (_, idx) {
+                                  return SelectableText(
+                                      '${idx} ${logLines[idx].line}');
+                                }),
+                          ),
                         ),
                       ],
                     )
