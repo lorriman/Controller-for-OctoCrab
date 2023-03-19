@@ -275,18 +275,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   if (_status != '')
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16),
-                      child: Row(
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
                             constraints: BoxConstraints(maxWidth: 300),
                             height: 100,
-                            child: Text(
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: true,
-                              _status,
-                              textScaleFactor: 1.5,
+                            child: Center(
+                              child: Text(
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                _status,
+                                textScaleFactor: 1.5,
+                              ),
                             ),
                           ),
                           if (_status == 'connecting...')
