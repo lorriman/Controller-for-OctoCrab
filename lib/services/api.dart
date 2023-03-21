@@ -34,8 +34,8 @@ class ApiCallResult<T> {
 class OctoCrabApi {
   late http.Client _client;
 
-  OctoCrabApi({required bool debug}) { //required because I forgot about the default
-    if (debug) {
+  OctoCrabApi({required bool test}) { //required because I forgot about the default
+    if (test) {
       log.fine('creating mock client');
       _client = MockClient((request) async {
         //final query=request.url.query;
@@ -43,6 +43,7 @@ class OctoCrabApi {
         final query = request.url.query;
 
         if (query.startsWith('action=login')) {
+          await Future.delayed(Duration(milliseconds: 10000));
           if (params['password'] == '123') {
             return Response(
                 json.encode({

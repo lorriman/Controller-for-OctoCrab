@@ -42,7 +42,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final OctoCrabApi _api = OctoCrabApi(debug: false);
+  final OctoCrabApi _api = OctoCrabApi(test: false);
 
   String _status = '';
   bool _debug = false;
@@ -250,7 +250,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     width: 300,
                     height: 200,
                     child:
-                        OctoButton('on/off', fontSize: 70, onPressed: () async {
+                        OctoButton('on/off', key: Key('on/off button'), fontSize: 70, onPressed: () async {
                       final password = _configItems[ConfigEnum.password]!.value;
                       _setStatus('connecting...');
                       final result = await _api.connect(password: password);
