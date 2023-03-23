@@ -111,6 +111,13 @@ class MyApp extends ConsumerWidget {
         lightSource: LightSource.topLeft,
         depth: 20,
       ),
+      darkTheme: NeumorphicThemeData(
+        baseColor: Color(0xFF3E3E3E),
+        shadowDarkColor: Color(0xFFFFFFFF),
+        shadowLightColor: Color(0xAAAAAAAA),
+        lightSource: LightSource.bottomLeft,
+        //depth: 6,
+      ),
       /*
       theme: ThemeData(
         primarySwatch: Colors.blue,

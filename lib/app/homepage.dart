@@ -447,13 +447,13 @@ class OctoText extends ConsumerWidget {
     if (disabled & darkMode) {
       return NeumorphicText(
         text,
-        /*
+
         style: NeumorphicStyle(
           //shadowLightColor: Colors.black,
-          depth: 2,
-          intensity: 0.4,
+          //depth: 2,
+          intensity: 0.3,
           //lightSource: LightSource.topRight,
-        ),*/
+        ),
         textStyle:
             NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
@@ -570,6 +570,7 @@ class OctoSlider extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return NeumorphicSlider(
+
         style: enabled
             ? (ref.watch(darkModeProvider)
                 ? SliderStyle(
@@ -583,13 +584,13 @@ class OctoSlider extends ConsumerWidget {
                     lightSource: LightSource.bottomLeft,
                     depth: 4))
             : (ref.watch(darkModeProvider)
-                ? SliderStyle(
+                ? SliderStyle( border: NeumorphicBorder(isEnabled: true, width: 2,color: Color(0x11111111)),
                     disableDepth: true,
                     accent: Colors.black26,
                     variant: Colors.black26,
                     lightSource: LightSource.bottomLeft,
                     depth: 4)
-                : SliderStyle(
+                : SliderStyle(border: NeumorphicBorder(isEnabled: true, width: 2, color : Color(0xEEEEEEEE)),
                     disableDepth: true,
                     accent: Colors.white,
                     variant: Colors.white,
