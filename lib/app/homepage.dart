@@ -42,7 +42,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final OctoCrabApi _api = OctoCrabApi(test: false);
+  final OctoCrabApi _api = OctoCrabApi(test: true);
 
   String _status = '';
   bool _debug = false;
@@ -443,19 +443,18 @@ class OctoText extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     final darkMode = ref.watch(darkModeProvider);
-
+    //final style=NeumorphicStyle.
     if (disabled & darkMode) {
       return NeumorphicText(
         text,
-        /*
         style: NeumorphicStyle(
           //shadowLightColor: Colors.black,
-          depth: 2,
+          //depth: 2,
           intensity: 0.4,
           //lightSource: LightSource.topRight,
-        ),*/
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
+        ),
+
+          textStyle:   NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
     } else if (darkMode) {
       return NeumorphicText(
@@ -473,10 +472,10 @@ class OctoText extends ConsumerWidget {
     } else if (disabled) {
       return NeumorphicText(
         text,
-        style: NeumorphicStyle(
+          style: NeumorphicStyle(
           //shadowLightColor: Colors.black,
-          depth: 0.5,
-          intensity: 0.6,
+          //depth: 0.5,
+          intensity: 0.5,
 //          color: Colors.grey,
           //lightSource: LightSource.topRight,
         ),
@@ -487,13 +486,13 @@ class OctoText extends ConsumerWidget {
       return NeumorphicText(
         text,
         style: NeumorphicStyle(
-          depth: 4,
+          //depth: 4,
           intensity: 1,
           //shadowDarkColor: Colors.black26,
           //lightSource: LightSource.topRight,
           //shape: NeumorphicShape.convex,
-          surfaceIntensity: .01,
-          color: Colors.white,
+          //surfaceIntensity: .01,
+          //color: Colors.white,
           //oppositeShadowLightSource: true,
         ),
         textStyle:
@@ -570,7 +569,7 @@ class OctoSlider extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return NeumorphicSlider(
-        style: enabled
+         style: enabled
             ? (ref.watch(darkModeProvider)
                 ? SliderStyle(
                     accent: Colors.black,
