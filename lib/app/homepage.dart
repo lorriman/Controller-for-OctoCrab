@@ -42,7 +42,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final OctoCrabApi _api = OctoCrabApi(test: false);
+  final OctoCrabApi _api = OctoCrabApi(test: true);
 
   String _status = '';
   bool _debug = false;
@@ -408,16 +408,6 @@ class OctoButton extends StatelessWidget {
         margin: EdgeInsets.all(10),
         pressed: null,
         onPressed: onPressed,
-        /* style: NeumorphicStyle(
-          shape: onPressed == null
-              ? NeumorphicShape.flat
-              : NeumorphicShape.concave,
-          lightSource: LightSource.topRight,
-          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(16)),
-          intensity: 3,
-          depth: 4,
-          disableDepth: false,
-        ),*/
         child: Center(
           child: OctoText(
             label,
@@ -476,7 +466,7 @@ class OctoText extends ConsumerWidget {
         style: NeumorphicStyle(
           //shadowLightColor: Colors.black,
           depth: 0.5,
-          intensity: 0.6,
+          intensity: 0.9,
 //          color: Colors.grey,
           //lightSource: LightSource.topRight,
         ),
