@@ -59,20 +59,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     _initLogger();
     _loadConfig(_configItems);
     _initTextControllers(_configItems, _textControllers);
-    _initBrightness(_configItems);
+    _initBrightness(ref);
     _configureApi(_configItems);
   }
 
 
-  _initBrightness(Map<ConfigEnum, ConfigItem> configItems){
-    final brightness =
-    double.tryParse(_configItems[ConfigEnum.brightness]!.value);
-    if (brightness == null) {
-      log.shout('BUG: brightness string is invalid');//remove this
-      _brightness = 0;
-      return;
-    }
-    _brightness = brightness;
+  _initBrightness(ref){
+    final brightness=ref.read(brightnessProvider);
+    _brightness = brightness.toDouble();
   }
 
 
@@ -101,30 +95,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
 
 
-  @override
-  void dispose() {
-    _disposeTextControllers(); 
-    super.dispose();
-  }
-
-  _disposeTextControllers(){
-    _textControllers.forEach((key, value) => value.dispose());
-    _textControllers.clear();
-  }
-  
-  _snackBar(context, msg) {
-    final snackBar = SnackBar(
-      content: Text(msg),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  _setStatus(String status) {
-    setState(() {
-      _status = status;
-    });
-  }
 
   void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
@@ -162,6 +132,32 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       prev_url: configItems[ConfigEnum.prev]!.value,
     );
   }
+
+  @override
+  void dispose() {
+    _disposeTextControllers();
+    super.dispose();
+  }
+
+  _disposeTextControllers(){
+    _textControllers.forEach((key, value) => value.dispose());
+    _textControllers.clear();
+  }
+
+  _snackBar(context, msg) {
+    final snackBar = SnackBar(
+      content: Text(msg),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  _setStatus(String status) {
+    setState(() {
+      _status = status;
+    });
+  }
+
 
   void _showAboutDialog(BuildContext context) async {
     final info = await PackageInfo.fromPlatform();
@@ -451,6 +447,8 @@ class OctoButton extends StatelessWidget {
         margin: EdgeInsets.all(10),
         pressed: null,
         onPressed: onPressed,
+        style: NeumorphicStyle(boxShape :
+            NeumorphicBoxShape.roundRect(BorderRadius.circular(20)),),
         child: Center(
           child: OctoText(
             label,
