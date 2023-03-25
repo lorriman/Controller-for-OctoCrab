@@ -91,20 +91,26 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
-        baseColor: Color(0xFFFFFFFF), //(0xFFFFFFFF),
-        //appBarTheme: NeumorphicAppBarThemeData(color: Color(0x11FFFFFF)),
-        lightSource: LightSource.topLeft,
-        depth: 7,
-        buttonStyle: NeumorphicStyle(shape: NeumorphicShape.concave),
-      ),
-
+          baseColor: Color(0xFFFFFFFF), //(0xFFFFFFFF),
+          //appBarTheme: NeumorphicAppBarThemeData(color: Color(0x11FFFFFF)),
+          lightSource: LightSource.topLeft,
+          depth: 7,
+          buttonStyle: NeumorphicStyle(
+              shape: NeumorphicShape.concave,
+              boxShape: NeumorphicBoxShape.roundRect(
+                BorderRadius.circular(20),
+              ))),
       darkTheme: NeumorphicThemeData(
         baseColor: Color(0xFF3E3E3E),
         shadowDarkColor: Color(0xFFFFFFFF),
         shadowLightColor: Color(0xBBBBBBBB),
         lightSource: LightSource.bottomRight,
         intensity: .9,
-          buttonStyle: NeumorphicStyle(shape: NeumorphicShape.convex),
+        buttonStyle: NeumorphicStyle(
+            shape: NeumorphicShape.convex,
+            boxShape: NeumorphicBoxShape.roundRect(
+              BorderRadius.circular(20),
+            )),
         //depth: 6,
       ),
 
