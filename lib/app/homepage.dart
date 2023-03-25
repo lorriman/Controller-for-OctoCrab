@@ -37,6 +37,8 @@ class MyHomePage extends ConsumerStatefulWidget {
   ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
+
+
 class _MyHomePageState extends ConsumerState<MyHomePage> {
   final Map<ConfigEnum, TextEditingController> _textControllers = {};
   final ScrollController _scrollController = ScrollController();
@@ -48,8 +50,42 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool _debug = false;
   bool _connected = false;
   bool _is_on = false;
+  double _brightness = 0;
 
-  Future<void> _scrollDown() async {
+
+  @override
+  void initState() {
+    super.initState();
+    _initLogger();
+    _loadConfig(_configItems);
+    _initTextControllers(_configItems, _textControllers);
+    _initBrightness(_configItems);
+    _configureApi(_configItems);
+  }
+
+
+  _initBrightness(Map<ConfigEnum, ConfigItem> configItems){
+    final brightness =
+    double.tryParse(_configItems[ConfigEnum.brightness]!.value);
+    if (brightness == null) {
+      log.shout('BUG: brightness string is invalid');//remove this
+      _brightness = 0;
+      return;
+    }
+    _brightness = brightness;
+  }
+
+
+  _initLogger(){
+    Logger.root.onRecord.listen((record) {
+      setState(() {
+        _scrollDownLog();
+      }); //updates the log view if visible
+    });
+
+  }
+
+  Future<void> _scrollDownLog() async {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
 /*  animated scrolling doesn't keep up
@@ -62,27 +98,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
 
-    Logger.root.onRecord.listen((record) {
-      setState(() {
-        _scrollDown();
-      }); //updates the log view if visible
-    });
-    _loadConfig(_configItems);
-    _initTextControllers(_configItems, _textControllers);
-    _configureApi(_configItems);
-  }
+
 
   @override
   void dispose() {
-    _textControllers.forEach((key, value) => value.dispose());
-    _textControllers.clear();
+    _disposeTextControllers(); 
     super.dispose();
   }
 
+  _disposeTextControllers(){
+    _textControllers.forEach((key, value) => value.dispose());
+    _textControllers.clear();
+  }
+  
   _snackBar(context, msg) {
     final snackBar = SnackBar(
       content: Text(msg),
@@ -97,7 +126,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-  void _loadConfig(configItems) {
+  void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
 
     final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
@@ -110,6 +139,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       //textControllers[enumItem] = TextEditingController();
       //textControllers[enumItem]!.text = value;
     }
+    
   }
 
   _initTextControllers(configItems, textControllers) {
@@ -192,9 +222,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   _textControllers[item.itemEnum]!,
                   sharedPrefKey: item.itemEnum.key,
                   ref: ref,
-                  password: item.itemEnum.key==sharedPrefKey_password,
+                  password: item.itemEnum.key == sharedPrefKey_password,
                   onChanged: (value) {
-                    String str = value;
+                    String str = value.trim();
                     if (str.length > 2040) {
                       /* max url length =2048*/
                       str = str.substring(1, 2040);
@@ -249,33 +279,43 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   SizedBox(
                     width: 300,
                     height: 200,
-                    child:
-                        OctoButton('on/off', key: Key('on/off button'), fontSize: 70, onPressed: () async {
-                      final password = _configItems[ConfigEnum.password]!.value;
-                      _setStatus('connecting...');
-                      final result = await _api.connect(password: password);
-                      if (!result.success) {
-                        _setStatus(result.errorString +
-                            ' ' +
-                            result.errorCode.toString());
-                        //_snackBar(context,result.errorString+' '+result.errorCode.toString());
-                      } else {
-                        _setStatus('');
-                        setState(() {
-                          _connected = true;
-                        });
-                        _is_on = !_is_on;
-                        if (_is_on)
-                          _api.switchOff();
-                        else
-                          _api.switchOn();
-                      }
-                    }),
+                    child: OctoButton(
+                      'on/off',
+                      key: Key('on/off button'),
+                      fontSize: 70,
+                      onPressed: () async {
+                        if (!_connected) {
+                          final password =
+                              _configItems[ConfigEnum.password]!.value;
+                          _setStatus('connecting...');
+                          final result = await _api.connect(password: password);
+                          if (result.success) {
+                            _setStatus('');
+                            setState(() {
+                              _connected = true;
+                            });
+                            //_snackBar(context,result.errorString+' '+result.errorCode.toString());
+                          } else {
+                            _setStatus(result.errorString +
+                                ' ' +
+                                result.errorCode.toString());
+                          }
+                        }
+                        if (_connected) {
+                          _is_on = !_is_on;
+                          if (_is_on)
+                            _api.switchOff();
+                          else
+                            _api.switchOn();
+                        }
+                      },
+                    ),
                   ),
                   if (_status != '')
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16),
-                      child: Row(crossAxisAlignment: CrossAxisAlignment.center,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
@@ -323,22 +363,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         )
                       ]),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.only(left:32.0, right: 32),
                     child: OctoSlider(
                         enabled: _connected,
-                        onChanged: _connected
-                            ? (value) {
-                                setState(() {
-                                  ref.read(brightnessProvider.notifier).state =
-                                      value.toInt();
-                                });
-                                final sharedPreferencesService =
-                                    ref.read(sharedPreferencesServiceProvider);
-                                sharedPreferencesService.sharedPreferences
-                                    .setInt('brightness', value.toInt());
-                                _api.brightness(value: value.toInt());
-                              }
-                            : null),
+                        value: _brightness,
+                        onChange: (value) {
+                          setState(() => _brightness = value);
+                        },
+                        onChangeEnd: (value) {
+                          setState(() {
+                            ref.read(brightnessProvider.notifier).state =
+                                value.toInt();
+                          });
+                          final sharedPreferencesService =
+                              ref.read(sharedPreferencesServiceProvider);
+                          sharedPreferencesService.sharedPreferences
+                              .setInt('brightness', value.toInt());
+                          _api.brightness(value: value.toInt());
+                        }),
                   ),
                   if (_debug)
                     Column(
@@ -348,7 +390,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(
                           height: 140,
-                          child: Scrollbar(trackVisibility: true ,
+                          child: Scrollbar(
+                            trackVisibility: true,
                             thickness: 10,
                             thumbVisibility: true,
                             controller: _scrollController,
@@ -437,7 +480,6 @@ class OctoText extends ConsumerWidget {
     if (disabled & darkMode) {
       return NeumorphicText(
         text,
-
         style: NeumorphicStyle(
           //shadowLightColor: Colors.black,
           //depth: 2,
@@ -550,45 +592,54 @@ class InputBox extends StatelessWidget {
 class OctoSlider extends ConsumerWidget {
   const OctoSlider({
     bool this.enabled = true,
-    this.onChanged,
+    this.onChange,
+    this.onChangeEnd,
+    required this.value,
     super.key,
   });
 
+  final double value;
   final bool enabled;
-  final NeumorphicSliderListener? onChanged;
+  final NeumorphicSliderListener? onChange;
+  final NeumorphicSliderListener? onChangeEnd;
 
   @override
   Widget build(BuildContext context, ref) {
     return NeumorphicSlider(
-
-        style: enabled
-            ? (ref.watch(darkModeProvider)
-                ? SliderStyle(
-                    accent: Colors.black,
-                    variant: Colors.black,
-                    lightSource: LightSource.bottomLeft,
-                    depth: 4)
-                : SliderStyle(
-                    accent: Colors.white,
-                    variant: Colors.grey,
-                    lightSource: LightSource.bottomLeft,
-                    depth: 4))
-            : (ref.watch(darkModeProvider)
-                ? SliderStyle( border: NeumorphicBorder(isEnabled: true, width: 2,color: Color(0x11111111)),
-                    disableDepth: true,
-                    accent: Colors.black26,
-                    variant: Colors.black26,
-                    lightSource: LightSource.bottomLeft,
-                    depth: 4)
-                : SliderStyle(border: NeumorphicBorder(isEnabled: true, width: 2, color : Color(0xEEEEEEEE)),
-                    disableDepth: true,
-                    accent: Colors.white,
-                    variant: Colors.white,
-                    lightSource: LightSource.bottomLeft,
-                    depth: 4)),
-        max: 255,
-        min: 1,
-        value: ref.watch(brightnessProvider.notifier).state.toDouble(),
-        onChanged: onChanged);
+      style: enabled
+          ? (ref.watch(darkModeProvider)
+              ? SliderStyle(
+                  accent: Colors.black,
+                  variant: Colors.black,
+                  lightSource: LightSource.bottomLeft,
+                  depth: 4)
+              : SliderStyle(
+                  accent: Colors.white,
+                  variant: Colors.grey,
+                  lightSource: LightSource.bottomLeft,
+                  depth: 4))
+          : (ref.watch(darkModeProvider)
+              ? SliderStyle(
+                  border: NeumorphicBorder(
+                      isEnabled: true, width: 2, color: Color(0x11111111)),
+                  disableDepth: true,
+                  accent: Colors.black26,
+                  variant: Colors.black26,
+                  lightSource: LightSource.bottomLeft,
+                  depth: 4)
+              : SliderStyle(
+                  border: NeumorphicBorder(
+                      isEnabled: true, width: 2, color: Color(0xEEEEEEEE)),
+                  disableDepth: true,
+                  accent: Colors.white,
+                  variant: Colors.white,
+                  lightSource: LightSource.bottomLeft,
+                  depth: 4)),
+      max: 255,
+      min: 1,
+      value: value,
+      onChanged: onChange,
+      onChangeEnd: onChangeEnd,
+    );
   }
 }

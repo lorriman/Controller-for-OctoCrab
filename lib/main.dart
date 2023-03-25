@@ -78,21 +78,6 @@ void main() async {
 //  runApp(const MyApp());
 }
 
-/*
- SystemChrome.setPreferredOrientations(
-    [
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ],
-  ).then((val) {
-    runApp(ProviderScope(overrides: [
-      sharedPreferencesServiceProvider.overrideWithValue(
-        SharedPreferencesService(sharedPreferences),
-      ),
-    ], child: MyApp()));
-  });
- */
-
 class MyApp extends ConsumerWidget {
   MyApp({super.key});
 
@@ -106,18 +91,23 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
-        baseColor: Color(0xAAFFFFFF), //(0xFFFFFFFF),
-        appBarTheme: NeumorphicAppBarThemeData(color: Color(0xDDFFFFFF)),
+        baseColor: Color(0xFFFFFFFF), //(0xFFFFFFFF),
+        //appBarTheme: NeumorphicAppBarThemeData(color: Color(0x11FFFFFF)),
         lightSource: LightSource.topLeft,
-        //depth: 20,
+        depth: 7,
+        buttonStyle: NeumorphicStyle(shape: NeumorphicShape.concave),
       ),
+
       darkTheme: NeumorphicThemeData(
         baseColor: Color(0xFF3E3E3E),
         shadowDarkColor: Color(0xFFFFFFFF),
-        shadowLightColor: Color(0xAAAAAAAA),
-        lightSource: LightSource.bottomLeft,
+        shadowLightColor: Color(0xBBBBBBBB),
+        lightSource: LightSource.bottomRight,
+        intensity: .9,
+          buttonStyle: NeumorphicStyle(shape: NeumorphicShape.convex),
         //depth: 6,
       ),
+
       /*
       theme: ThemeData(
         primarySwatch: Colors.blue,
