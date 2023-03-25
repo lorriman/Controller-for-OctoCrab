@@ -42,11 +42,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final OctoCrabApi _api = OctoCrabApi(test: true);
+  final OctoCrabApi _api = OctoCrabApi();
 
   String _status = '';
   bool _debug = false;
-  bool _connected = false;
+  bool _connected = true; //set to false to renable login, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
 
@@ -198,7 +198,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ),
         ),
         drawer: SafeArea(
-          child: Drawer(
+          child: Drawer( width: 350,
               child: SingleChildScrollView(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -207,7 +207,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: OctoText('Settings', 40),
               ),
               Divider(),
-              for (final item in _configItems.values)
+              for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
                 InputBox(
                   item.itemEnum.label,
                   _textControllers[item.itemEnum]!,

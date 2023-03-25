@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:http/testing.dart';
@@ -34,8 +35,8 @@ class ApiCallResult<T> {
 class OctoCrabApi {
   late http.Client _client;
 
-  OctoCrabApi({required bool test}) { //required because I forgot about the default
-    if (test) {
+  OctoCrabApi() { //required because I forgot about the default
+    if (kDebugMode) {
       log.fine('creating mock client');
       _client = MockClient((request) async {
         //final query=request.url.query;
