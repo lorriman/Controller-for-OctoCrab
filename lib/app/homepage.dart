@@ -37,21 +37,18 @@ class MyHomePage extends ConsumerStatefulWidget {
   ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-
-
 class _MyHomePageState extends ConsumerState<MyHomePage> {
   final Map<ConfigEnum, TextEditingController> _textControllers = {};
   final ScrollController _scrollController = ScrollController();
 
   final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final OctoCrabApi _api = OctoCrabApi(test: false);
+  final OctoCrabApi _api = OctoCrabApi(test: true);
 
   String _status = '';
   bool _debug = false;
   bool _connected = false;
   bool _is_on = false;
   double _brightness = 0;
-
 
   @override
   void initState() {
@@ -63,23 +60,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     _configureApi(_configItems);
   }
 
-
-  _initBrightness(ref){
-    final brightness=ref.read(brightnessProvider);
+  _initBrightness(ref) {
+    final brightness = ref.read(brightnessProvider);
     _brightness = brightness.toDouble();
   }
 
-
-  _initLogger(){
+  _initLogger() {
     Logger.root.onRecord.listen((record) {
       setState(() {
-        _scrollDownLog();
+        _scrollLogDown();
       }); //updates the log view if visible
     });
-
   }
 
-  Future<void> _scrollDownLog() async {
+  Future<void> _scrollLogDown() async {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
 /*  animated scrolling doesn't keep up
@@ -92,9 +86,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-
-
-
+  Future<void> _scrollLogUp() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.jumpTo(0);
+    });
+  }
 
   void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
@@ -109,7 +106,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       //textControllers[enumItem] = TextEditingController();
       //textControllers[enumItem]!.text = value;
     }
-    
   }
 
   _initTextControllers(configItems, textControllers) {
@@ -139,7 +135,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.dispose();
   }
 
-  _disposeTextControllers(){
+  _disposeTextControllers() {
     _textControllers.forEach((key, value) => value.dispose());
     _textControllers.clear();
   }
@@ -157,7 +153,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       _status = status;
     });
   }
-
 
   void _showAboutDialog(BuildContext context) async {
     final info = await PackageInfo.fromPlatform();
@@ -292,9 +287,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                             });
                             //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                           } else {
-                            _setStatus(result.errorString +
-                                ' ' +
-                                result.errorCode.toString());
+                            _setStatus(result.errorString);
                           }
                         }
                         if (_connected) {
@@ -359,7 +352,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         )
                       ]),
                   Padding(
-                    padding: const EdgeInsets.only(left:32.0, right: 32),
+                    padding: const EdgeInsets.only(left: 32.0, right: 32),
                     child: OctoSlider(
                         enabled: _connected,
                         value: _brightness,
@@ -378,29 +371,43 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           _api.brightness(value: value.toInt());
                         }),
                   ),
-                  if (_debug)
-                    Column(
-                      children: [
-                        Divider(),
-                        Text('Log',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        SizedBox(
-                          height: 140,
-                          child: Scrollbar(
-                            trackVisibility: true,
-                            thickness: 10,
-                            thumbVisibility: true,
-                            controller: _scrollController,
-                            child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: logLines.length,
-                                itemBuilder: (_, idx) {
-                                  return SelectableText(
-                                      '${idx} ${logLines[idx].line}');
-                                }),
+                  if (_debug) //todo: refactor to _showLog
+                    Container(
+                      color: Color(0x11111111),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text('Log : ',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              IconButton(
+                                  icon: Icon(Icons.keyboard_double_arrow_down),
+                                  onPressed: () => _scrollLogDown()),
+                              IconButton(
+                                  icon: Icon(Icons.keyboard_double_arrow_up),
+                                  onPressed: () => _scrollLogUp()),
+                            ],
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            height: 140,
+                            child: Scrollbar(
+                              trackVisibility: true,
+                              thickness: 10,
+                              thumbVisibility: true,
+                              controller: _scrollController,
+                              child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: logLines.length,
+                                  itemBuilder: (_, idx) {
+                                    return SelectableText(
+                                        '${idx} ${logLines[idx].line}');
+                                  }),
+                            ),
+                          ),
+                        ],
+                      ),
                     )
                 ],
               ),
