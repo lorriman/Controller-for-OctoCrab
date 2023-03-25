@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.lorriman.simple_octocrab">
    <application
-        android:label="simple_octocrab"
+        android:label="Controller"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
