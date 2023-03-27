@@ -275,11 +275,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                       key: Key('on/off button'),
                       fontSize: 70,
                       onPressed: () async {
+                        ApiCallResult? result;
+                        _setStatus('');
                         if (!_connected) {
                           final password =
                               _configItems[ConfigEnum.password]!.value;
                           _setStatus('connecting...');
-                          final result = await _api.connect(password: password);
+                           result = await _api.connect(password: password);
                           if (result.success) {
                             _setStatus('');
                             setState(() {
@@ -293,9 +295,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         if (_connected) {
                           _is_on = !_is_on;
                           if (_is_on)
-                            _api.switchOff();
+                            result = await _api.switchOff();
                           else
-                            _api.switchOn();
+                            result = await  _api.switchOn();
+                          if (!result.success) _setStatus(result.errorString);
                         }
                       },
                     ),
@@ -334,8 +337,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           child: OctoButton('prev',
                               fontSize: 40,
                               onPressed: _connected
-                                  ? () {
-                                      _api.previous();
+                                  ? () async {
+                                _setStatus('');
+                                      final result= await _api.previous();
+                                     _setStatus(result.errorString);
                                     }
                                   : null),
                         ),
@@ -345,8 +350,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           child: OctoButton('next',
                               fontSize: 40,
                               onPressed: _connected
-                                  ? () {
-                                      _api.next();
+                                  ? () async {
+                                _setStatus('');
+                                final result= await _api.next();
+                                _setStatus(result.errorString);
                                     }
                                   : null),
                         )
@@ -357,9 +364,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         enabled: _connected,
                         value: _brightness,
                         onChange: (value) {
+                          _setStatus('');
                           setState(() => _brightness = value);
                         },
-                        onChangeEnd: (value) {
+                        onChangeEnd: (value) async {
                           setState(() {
                             ref.read(brightnessProvider.notifier).state =
                                 value.toInt();
@@ -368,7 +376,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               ref.read(sharedPreferencesServiceProvider);
                           sharedPreferencesService.sharedPreferences
                               .setInt('brightness', value.toInt());
-                          _api.brightness(value: value.toInt());
+                          final result=await _api.brightness(value: value.toInt());
+                          _setStatus(result.errorString);
+
                         }),
                   ),
                   if (_debug) //todo: refactor to _showLog
