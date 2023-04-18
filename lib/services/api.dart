@@ -121,6 +121,17 @@ class OctoCrabApi {
     required String next_url,
     required String prev_url,
     required String brightness_url,
+ /*   required String c1_url,
+    required String c2_url,
+    required String c3_url,
+    required String c4_url,
+    required String c5_url,
+    required String c6_url,
+    required String c7_url,
+    required String c8_url,
+    required String c9_url,
+    required String c10_url, */
+
   }) {
     this._address = address;
     this._shutdown_url = shutdown;
@@ -131,6 +142,16 @@ class OctoCrabApi {
     this._next_url = next_url;
     this._prev_url = prev_url;
     this._brightness_url = brightness_url;
+  /*  this._c1_url=c1_url;
+    this._c2_url=c2_url;
+    this._c3_url=c3_url;
+    this._c4_url=c4_url;
+    this._c5_url=c5_url;
+    this._c6_url=c6_url;
+    this._c7_url=c7_url;
+    this._c8_url=c8_url;
+    this._c9_url=c9_url;
+    this._c10_url=c10_url; */
   }
 
   Future<void> dispose() async {
@@ -146,6 +167,16 @@ class OctoCrabApi {
   String _next_url = '';
   String _prev_url = '';
   String _brightness_url = '';
+  String _c1_url='';
+  String _c2_url='';
+  String _c3_url='';
+  String _c4_url='';
+  String _c5_url='';
+  String _c6_url='';
+  String _c7_url='';
+  String _c8_url='';
+  String _c9_url='';
+  String _c10_url='';
 
   Future<ApiCallResult> _call(
     String uri, {

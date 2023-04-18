@@ -30,7 +30,7 @@ final brightnessProvider = StateProvider<int>((ref) {
 
 final rateLimitBrightnessProvider = StateProvider<bool>((ref) {
   final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getString(SharedPrefKey_rateLimitBrightness)=='true' ?? false;
+  return prefService.sharedPreferences.getString(SharedPrefKey_rateLimitBrightness)=='true';
 });
 
 
@@ -353,166 +353,179 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
           slivers: [
             SliverFillRemaining(
               hasScrollBody: true,
-              child: Column(
-                //mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  //OctoText('TEST',100),
-                  SizedBox(
-                    width: 300,
-                    height: 200,
-                    child: OctoButton(
-                      'on/off',
-                      key: Key('on/off button'),
-                      fontSize: 70,
-                      onPressed: () async {
-                        ApiCallResult? result;
-                        _setStatus('');
-                        if (!_connected) {
-                          final password =
-                              _configItems[ConfigEnum.password]!.value;
-                          _setStatus('connecting...');
-                           result = await _api.connect(password: password);
-                          if (result.success) {
-                            _setStatus('');
-                            setState(() {
-                              _connected = true;
-                            });
-                            //_snackBar(context,result.errorString+' '+result.errorCode.toString());
-                          } else {
-                            _setStatus(result.errorString);
-                          }
-                        }
-                        if (_connected) {
-                          _is_on = !_is_on;
-                          if (_is_on)
-                            result = await _api.switchOff();
-                          else
-                            result = await  _api.switchOn();
-                          if (!result.success) _setStatus(result.errorString);
-                        }
-                      },
-                    ),
-                  ),
-                  if (_status != '')
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, right: 16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            constraints: BoxConstraints(maxWidth: 300),
-                            height: 100,
-                            child: Center(
-                              child: Text(
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: true,
-                                _status,
-                                textScaleFactor: 1.5,
-                              ),
+              child: Row(
+                children: [
+                  Flexible(flex : 3,
+                    child: Column(
+                      //mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        //OctoText('TEST',100),
+                        SizedBox(
+                          width: 300,
+                          height: 200,
+                          child: OctoButton(
+                            'on/off',
+                            key: Key('on/off button'),
+                            fontSize: 70,
+                            onPressed: () async {
+                              ApiCallResult? result;
+                              _setStatus('');
+                              if (!_connected) {
+                                final password =
+                                    _configItems[ConfigEnum.password]!.value;
+                                _setStatus('connecting...');
+                                 result = await _api.connect(password: password);
+                                if (result.success) {
+                                  _setStatus('');
+                                  setState(() {
+                                    _connected = true;
+                                  });
+                                  //_snackBar(context,result.errorString+' '+result.errorCode.toString());
+                                } else {
+                                  _setStatus(result.errorString);
+                                }
+                              }
+                              if (_connected) {
+                                _is_on = !_is_on;
+                                if (_is_on)
+                                  result = await _api.switchOff();
+                                else
+                                  result = await  _api.switchOn();
+                                if (!result.success) _setStatus(result.errorString);
+                              }
+                            },
+                          ),
+                        ),
+                        if (_status != '')
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0, right: 16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(maxWidth: 300),
+                                  height: 100,
+                                  child: Center(
+                                    child: Text(
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: true,
+                                      _status,
+                                      textScaleFactor: 1.5,
+                                    ),
+                                  ),
+                                ),
+                                if (_status == 'connecting...')
+                                  CircularProgressIndicator(),
+                              ],
                             ),
                           ),
-                          if (_status == 'connecting...')
-                            CircularProgressIndicator(),
-                        ],
-                      ),
-                    ),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SizedBox(
-                          width: 150,
-                          height: 100,
-                          child: OctoButton('prev',
-                              fontSize: 40,
-                              onPressed: _connected
-                                  ? () async {
-                                _setStatus('');
-                                      final result= await _api.previous();
-                                     _setStatus(result.errorString);
-                                    }
-                                  : null),
-                        ),
-                        SizedBox(
-                          width: 150,
-                          height: 100,
-                          child: OctoButton('next',
-                              fontSize: 40,
-                              onPressed: _connected
-                                  ? () async {
-                                _setStatus('');
-                                final result= await _api.next();
-                                _setStatus(result.errorString);
-                                    }
-                                  : null),
-                        )
-                      ]),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 32.0, right: 32),
-                    child: OctoSlider(
-                        enabled: _connected,
-                        value: _brightness,
-                        onChange: (value) {
-                          _setStatus('');
-                          setState(() => _brightness = value);
-                        },
-                        onChangeEnd: (value) async {
-                          setState(() {
-                            ref.read(brightnessProvider.notifier).state =
-                                value.toInt();
-                          });
-                          final sharedPreferencesService =
-                              ref.read(sharedPreferencesServiceProvider);
-                          sharedPreferencesService.sharedPreferences
-                              .setInt('brightness', value.toInt());
-                          final result=await _api.brightness(value: value.toInt());
-                          _setStatus(result.errorString);
-
-                        }),
-                  ),
-                  if (_debug) //todo: refactor to _showLog
-                    Container(
-                      color: Color(0x11111111),
-                      child: Column(
-                        children: [
-                          Row(
+                        Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Text('Log : ',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              IconButton(
-                                  icon: Icon(Icons.keyboard_double_arrow_down),
-                                  onPressed: () => _scrollLogDown()),
-                              IconButton(
-                                  icon: Icon(Icons.keyboard_double_arrow_up),
-                                  onPressed: () => _scrollLogUp()),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 140,
-                            child: Scrollbar(
-                              trackVisibility: true,
-                              thickness: 10,
-                              thumbVisibility: true,
-                              controller: _scrollController,
-                              child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: logLines.length,
-                                  itemBuilder: (_, idx) {
-                                    return SelectableText(
-                                        '${idx} ${logLines[idx].line}');
-                                  }),
+                              SizedBox(
+                                width: 150,
+                                height: 100,
+                                child: OctoButton('prev',
+                                    fontSize: 40,
+                                    onPressed: _connected
+                                        ? () async {
+                                      _setStatus('');
+                                            final result= await _api.previous();
+                                           _setStatus(result.errorString);
+                                          }
+                                        : null),
+                              ),
+                              SizedBox(
+                                width: 150,
+                                height: 100,
+                                child: OctoButton('next',
+                                    fontSize: 40,
+                                    onPressed: _connected
+                                        ? () async {
+                                      _setStatus('');
+                                      final result= await _api.next();
+                                      _setStatus(result.errorString);
+                                          }
+                                        : null),
+                              )
+                            ]),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32.0, right: 32),
+                          child: OctoSlider(
+                              enabled: _connected,
+                              value: _brightness,
+                              onChange: (value) {
+                                _setStatus('');
+                                setState(() => _brightness = value);
+                              },
+                              onChangeEnd: (value) async {
+                                setState(() {
+                                  ref.read(brightnessProvider.notifier).state =
+                                      value.toInt();
+                                });
+                                final sharedPreferencesService =
+                                    ref.read(sharedPreferencesServiceProvider);
+                                sharedPreferencesService.sharedPreferences
+                                    .setInt('brightness', value.toInt());
+                                final result=await _api.brightness(value: value.toInt());
+                                _setStatus(result.errorString);
+
+                              }),
+                        ),
+                        if (_debug) //todo: refactor to _showLog
+                          Container(
+                            color: Color(0x11111111),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Text('Log : ',
+                                        style:
+                                            TextStyle(fontWeight: FontWeight.bold)),
+                                    IconButton(
+                                        icon: Icon(Icons.keyboard_double_arrow_down),
+                                        onPressed: () => _scrollLogDown()),
+                                    IconButton(
+                                        icon: Icon(Icons.keyboard_double_arrow_up),
+                                        onPressed: () => _scrollLogUp()),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 140,
+                                  child: Scrollbar(
+                                    trackVisibility: true,
+                                    thickness: 10,
+                                    thumbVisibility: true,
+                                    controller: _scrollController,
+                                    child: ListView.builder(
+                                        controller: _scrollController,
+                                        itemCount: logLines.length,
+                                        itemBuilder: (_, idx) {
+                                          return SelectableText(
+                                              '${idx} ${logLines[idx].line}');
+                                        }),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    )
+                          )
+                      ],
+                    ),
+                  ),
+                 //test out for adding user-defined control buttons.
+                 Flexible( flex : 0,//height : 600,width : 100,
+                  child: Column(children : [
+                    if (false) for (var i = 0; i < 10; i++)
+                      OctoButton((i+1).toString(),fontSize: 20)
+                  ]),
+                ),
                 ],
-              ),
+               ),
             )
           ],
         ));
