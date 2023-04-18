@@ -35,7 +35,7 @@ class ApiCallResult<T> {
 class OctoCrabApi {
   late http.Client _client;
 
-  OctoCrabApi() { //required because I forgot about the default
+  OctoCrabApi() {
     if (kDebugMode) {
       log.fine('creating mock client');
       _client = MockClient((request) async {
@@ -92,6 +92,18 @@ class OctoCrabApi {
 
         }
 
+        if (query.startsWith("action=shutdown")) {
+          await Future.delayed(Duration(milliseconds: 2000));
+          return Response(
+              json.encode({
+                'numbers': [1, 4, 15, 19, 214]
+              }),
+              200,
+              headers: {'content-type': 'application/json'});
+
+        }
+
+
         return Response("", 404);
       });
     } else {
@@ -101,6 +113,7 @@ class OctoCrabApi {
 
   init({
     required String address,
+    required String shutdown,
     required String login_url,
     required String password,
     required String on_url,
@@ -110,6 +123,7 @@ class OctoCrabApi {
     required String brightness_url,
   }) {
     this._address = address;
+    this._shutdown_url = shutdown;
     this._password = password;
     this._login_url = login_url;
     this._on_url = on_url;
@@ -124,6 +138,7 @@ class OctoCrabApi {
   }
 
   String _address = '';
+  String _shutdown_url = '';
   String _login_url = '';
   String _password = '';
   String _on_url = '';
@@ -191,6 +206,11 @@ class OctoCrabApi {
     return await _call(_prev_url);
   }
 
+  Future<ApiCallResult> shutdown() async {
+    return await _call(_shutdown_url);
+  }
+
+  
   Future<ApiCallResult> brightness({int value = 125}) async {
     return await _call(_brightness_url, param1: value.toString());
   }

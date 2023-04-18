@@ -28,6 +28,12 @@ final brightnessProvider = StateProvider<int>((ref) {
   return prefService.sharedPreferences.getInt('brightness') ?? 125;
 });
 
+final rateLimitBrightnessProvider = StateProvider<bool>((ref) {
+  final prefService = ref.read(sharedPreferencesServiceProvider);
+  return prefService.sharedPreferences.getString(SharedPrefKey_rateLimitBrightness)=='true' ?? false;
+});
+
+
 class MyHomePage extends ConsumerStatefulWidget {
   MyHomePage({super.key, required this.title});
 
@@ -49,7 +55,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool _connected = true; //set to false to renable login, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
+  bool _rateLimitBrightness=false;
 
+  //some paramters are redundant but indicate method behaviour
   @override
   void initState() {
     super.initState();
@@ -61,9 +69,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   }
 
   _initBrightness(ref) {
-    final brightness = ref.read(brightnessProvider);
-    _brightness = brightness.toDouble();
+    _brightness = ref.read(brightnessProvider).toDouble();
+    _rateLimitBrightness= ref.read(rateLimitBrightnessProvider);
   }
+
 
   _initLogger() {
     Logger.root.onRecord.listen((record) {
@@ -119,6 +128,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
     _api.init(
       address: configItems[ConfigEnum.server]!.value,
+      shutdown : configItems[ConfigEnum.shutdown]!.value,
       password: configItems[ConfigEnum.password]!.value,
       login_url: configItems[ConfigEnum.login]!.value,
       on_url: configItems[ConfigEnum.switchOn]!.value,
@@ -132,6 +142,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void dispose() {
     _disposeTextControllers();
+    _api.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -163,6 +175,42 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       applicationIcon: Icon(Icons.info_outline),
     );
   }
+
+  Future<bool?> _shutdownDialogBuilder(BuildContext context) {
+    return showDialog<bool?>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(icon:Icon(size: 70,Icons.power_settings_new,color : Colors.red) ,
+          //title: const Text('Shutdown'),
+shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
+          content: const Text('Are you sure you wish to shutdown the remote device?',textScaleFactor: 1.3),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              )
+              ,
+              child: const Text('Yes',textScaleFactor: 2),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel ',textScaleFactor: 2),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +244,29 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ),
             ],
           ),
+          actions: [
+            IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red),
+            onPressed: () async {
+
+              final shouldShutdown=await _shutdownDialogBuilder(context) ?? false;
+
+              if(shouldShutdown) {
+                _setStatus('sending shut down signal...');
+                final result = await _api.shutdown();
+                if (result.success) {
+                  _setStatus('');
+                  _snackBar(context, 'shutdown signal sent');
+                  //_snackBar(context,result.errorString+' '+result.errorCode.toString());
+                } else {
+                  _setStatus(result.errorString);
+                }
+              }
+
+            },iconSize: 50,
+              tooltip: 'shutdown device',
+            ),
+
+          ],
         ),
         drawer: SafeArea(
           child: Drawer( width: 350,
@@ -208,7 +279,30 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ),
               Divider(),
               for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
-                InputBox(
+              (){
+
+                final sharedPreferencesService =
+                ref.read(sharedPreferencesServiceProvider);
+
+
+                if (item.itemEnum.checkbox){
+                  final value=sharedPreferencesService.sharedPreferences
+                      .getString(item.itemEnum.key) ?? 'false';
+                  return Row(
+                    children: [
+                      Checkbox(value:value=='true',onChanged: true ? null : (value){
+
+                        sharedPreferencesService.sharedPreferences
+                            .setString(item.itemEnum.key, value! ? 'true' : 'false' );
+                      }
+                        , ),
+                      Text(item.itemEnum.label+' (tba)',style: TextStyle(color: Colors.grey)),
+                    ],
+
+                  );
+                }
+
+                return InputBox(
                   item.itemEnum.label,
                   _textControllers[item.itemEnum]!,
                   sharedPrefKey: item.itemEnum.key,
@@ -220,15 +314,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                       /* max url length =2048*/
                       str = str.substring(1, 2040);
                     }
-                    final sharedPreferencesService =
-                        ref.read(sharedPreferencesServiceProvider);
                     sharedPreferencesService.sharedPreferences
                         .setString(item.itemEnum.key, str);
                     _configItems[item.itemEnum] =
                         ConfigItem(item.itemEnum, str);
                     _configureApi(_configItems);
                   },
-                ),
+                ); }(),
               Divider(),
               Padding(
                 padding: const EdgeInsets.all(16.0),
