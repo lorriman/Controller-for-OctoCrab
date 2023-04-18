@@ -8,7 +8,17 @@ const sharedPrefKey_on = 'api_on';
 const sharedPrefKey_off = 'api_off';
 const sharedPrefKey_next = 'api_next';
 const sharedPrefKey_prev = 'api_prev';
-const SharedPrefKey_rateLimitBrightness= 'api_restrict_brightness1';
+const sharedPrefKey_rateLimitBrightness= 'api_restrict_brightness1';
+const sharedPrefKey_c1='api_userdefined_1';
+const sharedPrefKey_c2='api_userdefined_2';
+const sharedPrefKey_c3='api_userdefined_3';
+const sharedPrefKey_c4='api_userdefined_4';
+const sharedPrefKey_c5='api_userdefined_5';
+const sharedPrefKey_c6='api_userdefined_6';
+const sharedPrefKey_c7='api_userdefined_7';
+const sharedPrefKey_c8='api_userdefined_8';
+const sharedPrefKey_c9='api_userdefined_9';
+const sharedPrefKey_c10='api_userdefined_10';
 
 /// login is disabled, see [ConfigEnum.login]
 enum ConfigEnum {
@@ -35,7 +45,17 @@ enum ConfigEnum {
       key: sharedPrefKey_brightness,
       label: 'brightness',
       example: '?brightness=%s'),
-  rateLimitBrightness(enabled : true, key : SharedPrefKey_rateLimitBrightness, label: 'rate limit brightness', example : '',checkbox : true, indent : 40 )
+  rateLimitBrightness(enabled : true, key : sharedPrefKey_rateLimitBrightness, label: 'rate limit brightness', example : '',checkbox : true, indent : 40 ),
+  c1(enabled : true, key : sharedPrefKey_c1, label: 'c1', example : 'https://google.com/deletealluserdata'),
+  c2(enabled : true, key : sharedPrefKey_c2, label: 'c2', example : ''),
+  c3(enabled : true, key : sharedPrefKey_c3, label: 'c3', example : ''),
+  c4(enabled : true, key : sharedPrefKey_c4, label: 'c4', example : ''),
+  c5(enabled : true, key : sharedPrefKey_c5, label: 'c5', example : ''),
+  c6(enabled : true, key : sharedPrefKey_c6, label: 'c6', example : ''),
+  c7(enabled : true, key : sharedPrefKey_c7, label: 'c7', example : ''),
+  c8(enabled : true, key  :sharedPrefKey_c8, label: 'c8', example : ''),
+  c9(enabled : true, key : sharedPrefKey_c9, label: 'c9', example : ''),
+  c10(enabled : true, key :sharedPrefKey_c10, label: 'c10', example : '')
   ;
 
   const ConfigEnum({
@@ -61,3 +81,16 @@ class ConfigItem {
   final ConfigEnum itemEnum;
   final String value;
 }
+
+final configCustomSet={
+  ConfigEnum.c1,
+  ConfigEnum.c2,
+  ConfigEnum.c3,
+  ConfigEnum.c4,
+  ConfigEnum.c5,
+  ConfigEnum.c6,
+  ConfigEnum.c7,
+  ConfigEnum.c8,
+  ConfigEnum.c9,
+  ConfigEnum.c10,
+};

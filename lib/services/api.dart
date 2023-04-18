@@ -121,7 +121,7 @@ class OctoCrabApi {
     required String next_url,
     required String prev_url,
     required String brightness_url,
- /*   required String c1_url,
+/*    required String c1_url,
     required String c2_url,
     required String c3_url,
     required String c4_url,
@@ -142,7 +142,7 @@ class OctoCrabApi {
     this._next_url = next_url;
     this._prev_url = prev_url;
     this._brightness_url = brightness_url;
-  /*  this._c1_url=c1_url;
+/*    this._c1_url=c1_url;
     this._c2_url=c2_url;
     this._c3_url=c3_url;
     this._c4_url=c4_url;
@@ -167,7 +167,7 @@ class OctoCrabApi {
   String _next_url = '';
   String _prev_url = '';
   String _brightness_url = '';
-  String _c1_url='';
+/*  String _c1_url='';
   String _c2_url='';
   String _c3_url='';
   String _c4_url='';
@@ -176,7 +176,7 @@ class OctoCrabApi {
   String _c7_url='';
   String _c8_url='';
   String _c9_url='';
-  String _c10_url='';
+  String _c10_url=''; */
 
   Future<ApiCallResult> _call(
     String uri, {
@@ -187,11 +187,28 @@ class OctoCrabApi {
     String params = '';
     Response response=Response('dummy body',404, reasonPhrase: "dummy response object");
 
+    final parsed=Uri.tryParse(uri);
+
+    bool hasAddressAlready=false;
+    if (parsed!=null) {
+      try {
+        //the get is redundant since when there's no origin it excepts, forcing us to catch
+        //#annoyingAPI
+        hasAddressAlready = parsed.origin != '';
+      }catch(e) {};
+    }
+
+    if(!hasAddressAlready && _address==''){
+      return ApiCallResult(false,
+          errorCode: -1,
+          errorString: 'no server configured: $uri');
+    }
+
     params = uri.replaceFirst('%s', param1);
     params = params.replaceFirst('%s', param2);
     params = params.replaceFirst('%s', param3);
 
-    final link = '$_address$params';
+    final link = hasAddressAlready? params : '$_address$params';
     final url = Uri.tryParse(link);
     if (url==null){
       return ApiCallResult(false,
@@ -244,5 +261,9 @@ class OctoCrabApi {
   
   Future<ApiCallResult> brightness({int value = 125}) async {
     return await _call(_brightness_url, param1: value.toString());
+  }
+
+  Future<ApiCallResult> userDefined(String url, { String param1='',String param2='', String param3=''}) async {
+    return await _call(url, param1 : param1, param2 : param2 , param3 : param3 );
   }
 }

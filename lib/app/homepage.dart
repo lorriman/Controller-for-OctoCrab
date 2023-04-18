@@ -30,7 +30,7 @@ final brightnessProvider = StateProvider<int>((ref) {
 
 final rateLimitBrightnessProvider = StateProvider<bool>((ref) {
   final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getString(SharedPrefKey_rateLimitBrightness)=='true';
+  return prefService.sharedPreferences.getString(sharedPrefKey_rateLimitBrightness)=='true';
 });
 
 
@@ -67,6 +67,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     _initBrightness(ref);
     _configureApi(_configItems);
   }
+
 
   _initBrightness(ref) {
     _brightness = ref.read(brightnessProvider).toDouble();
@@ -211,6 +212,26 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
     );
   }
 
+  //determines if the user has configured one of the c1-c10 customisable buttons
+  //Not a getter as the compute is relatively expensive
+  bool _hasConfiguredCustomItems(){
+    int c=0;
+    _configItems.forEach((key, value) {
+      if (configCustomSet.contains(key))
+        value.value!='' ? c++:null;
+    });
+    return c>0;
+  }
+
+  //determines if the custom item c1-c10 has been configured
+  bool _isConfiguredCustomItemByIndex(int idx){
+    final enumItem=configCustomSet.elementAt(idx);
+    return _isConfiguredCustomItem(enumItem);
+  }
+
+  bool _isConfiguredCustomItem(ConfigEnum enumItem){
+    return _configItems[enumItem]!.value!='';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -278,6 +299,31 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                 child: OctoText('Settings', 40),
               ),
               Divider(),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          width: 120,
+                          child: SizedBox(
+                            width: 100,
+                            child: OctoSwitch(
+                                value: ref.read(darkModeProvider), //flicker?
+                                onChanged: (value) {
+                                  ref.read(darkModeProvider.notifier).state = value;
+                                  final sharedPreferencesService =
+                                  ref.read(sharedPreferencesServiceProvider);
+                                  sharedPreferencesService.sharedPreferences
+                                      .setBool('darkMode', value);
+                                }),
+                          ),
+                        ),
+                        OctoText('Dark mode', 20),
+                      ],
+                    ),
+                  ),
+              Divider(),
               for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
               (){
 
@@ -309,6 +355,10 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   ref: ref,
                   password: item.itemEnum.key == sharedPrefKey_password,
                   onChanged: (value) {
+                    //brute-forcing the update because the Drawer doesn't have events like onUnShow
+                   // which means the c1-10 custom functions don't appear/disappear as they should
+                    //todo: optimise the setState
+                    setState((){
                     String str = value.trim();
                     if (str.length > 2040) {
                       /* max url length =2048*/
@@ -319,33 +369,11 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                     _configItems[item.itemEnum] =
                         ConfigItem(item.itemEnum, str);
                     _configureApi(_configItems);
+                  });
                   },
                 ); }(),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      width: 120,
-                      child: SizedBox(
-                        width: 100,
-                        child: OctoSwitch(
-                            value: ref.read(darkModeProvider), //flicker?
-                            onChanged: (value) {
-                              ref.read(darkModeProvider.notifier).state = value;
-                              final sharedPreferencesService =
-                                  ref.read(sharedPreferencesServiceProvider);
-                              sharedPreferencesService.sharedPreferences
-                                  .setBool('darkMode', value);
-                            }),
-                      ),
-                    ),
-                    OctoText('Dark mode', 20),
-                  ],
-                ),
-              ),
+              //Divider(),
+
             ]),
           )),
         ),
@@ -518,10 +546,21 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                     ),
                   ),
                  //test out for adding user-defined control buttons.
-                 Flexible( flex : 0,//height : 600,width : 100,
+                 if(_hasConfiguredCustomItems()) Flexible( flex : 0,//height : 600,width : 100,
                   child: Column(children : [
-                    if (false) for (var i = 0; i < 10; i++)
-                      OctoButton((i+1).toString(),fontSize: 20)
+                    for (var i = 0; i < 10; i++)
+                      OctoButton('c'+(i+1).toString(),fontSize: 20,
+                      onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{
+                        final enumItem=configCustomSet.elementAt(i);
+                        final url=_configItems[enumItem]!.value;
+
+                        ApiCallResult? result;
+                        _setStatus('custom function c'+(i+1).toString()+'...');
+                        result = await _api.userDefined(url);
+                        _setStatus(result.errorString);
+
+                      },)
+
                   ]),
                 ),
                 ],
@@ -556,16 +595,17 @@ class OctoButton extends StatelessWidget {
     String this.label, {
     this.fontSize = 20,
     this.onPressed,
+        this.tooltip,
     super.key,
   });
 
   final double fontSize;
   final String label;
   final NeumorphicButtonClickListener? onPressed;
-
+ final String? tooltip;
   @override
   Widget build(BuildContext context) {
-    return NeumorphicButton(
+    return NeumorphicButton(tooltip: tooltip,
         margin: EdgeInsets.all(10),
         pressed: null,
         onPressed: onPressed,
