@@ -547,7 +547,8 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   ),
                  //test out for adding user-defined control buttons.
                  if(_hasConfiguredCustomItems()) Flexible( flex : 0,//height : 600,width : 100,
-                  child: Column(children : [
+                  child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children : [ SizedBox(height: 40),
                     for (var i = 0; i < 10; i++)
                       OctoButton('c'+(i+1).toString(),fontSize: 20,
                       onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{

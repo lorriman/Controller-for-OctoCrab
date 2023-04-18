@@ -46,7 +46,7 @@ enum ConfigEnum {
       label: 'brightness',
       example: '?brightness=%s'),
   rateLimitBrightness(enabled : true, key : sharedPrefKey_rateLimitBrightness, label: 'rate limit brightness', example : '',checkbox : true, indent : 40 ),
-  c1(enabled : true, key : sharedPrefKey_c1, label: 'c1', example : 'https://google.com/deletealluserdata'),
+  c1(enabled : true, key : sharedPrefKey_c1, label: 'c1', example : 'custom button example: https://google.com/deletealluserdata'),
   c2(enabled : true, key : sharedPrefKey_c2, label: 'c2', example : ''),
   c3(enabled : true, key : sharedPrefKey_c3, label: 'c3', example : ''),
   c4(enabled : true, key : sharedPrefKey_c4, label: 'c4', example : ''),
