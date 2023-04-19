@@ -24,11 +24,11 @@ class ApiCallResult<T> {
   ///     if(callResult.data){ etc...}
   ///
   ApiCallResult(this.success,
-      {this.data, this.errorCode, this.errorString = 'Error'});
+      {this.data, this.errorCode, this.errorString = ''});
 
   bool success;
   T? data;
-  String errorString = 'Error';
+  String errorString = '';
   int? errorCode;
 }
 

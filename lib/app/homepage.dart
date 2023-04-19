@@ -51,7 +51,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   final OctoCrabApi _api = OctoCrabApi();
 
   String _status = '';
-  bool _debug = false;
+  bool _showLog = false;
   bool _connected = true; //set to false to renable login, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
@@ -237,7 +237,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
   Widget build(BuildContext context) {
     //final darkMode = ref.watch(darkModeProvider);
     return Scaffold(
-        floatingActionButton: !_debug
+        floatingActionButton: !_showLog
             ? null
             : FloatingActionButton(
                 tooltip: 'copy the log to the clipboard',
@@ -257,7 +257,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
             children: [
               GestureDetector(
                 child: OctoText("Robert's ", 25),
-                onDoubleTap: () => setState(() => _debug = !_debug),
+                onDoubleTap: () => setState(() => _showLog = !_showLog),
               ),
               GestureDetector(
                 child: OctoText('controller', 25),
@@ -463,6 +463,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                         ? () async {
                                       _setStatus('');
                                             final result= await _api.previous();
+
                                            _setStatus(result.errorString);
                                           }
                                         : null),
@@ -504,7 +505,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
 
                               }),
                         ),
-                        if (_debug) //todo: refactor to _showLog
+                        if (_showLog) //todo: refactor to _showLog
                           Container(
                             color: Color(0x11111111),
                             child: Column(
@@ -550,15 +551,17 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children : [ SizedBox(height: 40),
                     for (var i = 0; i < 10; i++)
-                      OctoButton('c'+(i+1).toString(),fontSize: 20,
+                      OctoButton('c'+(i+1).toString(),fontSize: 18,
                       onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{
+                        final cLabel='c'+(i+1).toString();
                         final enumItem=configCustomSet.elementAt(i);
                         final url=_configItems[enumItem]!.value;
 
                         ApiCallResult? result;
-                        _setStatus('custom function c'+(i+1).toString()+'...');
+                        _setStatus('custom function $cLabel ...');
                         result = await _api.userDefined(url);
-                        _setStatus(result.errorString);
+                        if (!result.success)
+                          _setStatus(cLabel+' '+result.errorString);
 
                       },)
 
