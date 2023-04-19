@@ -36,7 +36,9 @@ class OctoCrabApi {
   late http.Client _client;
 
   OctoCrabApi() {
-    if (kDebugMode) {
+    if (true) {//todo: this should be kDebugMode, but testing for a bug on a real server
+      _client = http.Client();
+    }else{ //mocks for developing
       log.fine('creating mock client');
       _client = MockClient((request) async {
         //final query=request.url.query;
@@ -44,7 +46,7 @@ class OctoCrabApi {
         final query = request.url.query;
 
         if (query.startsWith('action=login')) {
-          await Future.delayed(Duration(milliseconds: 10000));
+          await Future.delayed(Duration(milliseconds: 1000));
           if (params['password'] == '123') {
             return Response(
                 json.encode({
@@ -106,8 +108,6 @@ class OctoCrabApi {
 
         return Response("", 404);
       });
-    } else {
-      _client = http.Client();
     }
   }
 
@@ -199,9 +199,11 @@ class OctoCrabApi {
     }
 
     if(!hasAddressAlready && _address==''){
+      final errStr='no server configured: $uri';
+      log.warning(errStr);
       return ApiCallResult(false,
           errorCode: -1,
-          errorString: 'no server configured: $uri');
+          errorString: errStr);
     }
 
     params = uri.replaceFirst('%s', param1);
@@ -211,24 +213,26 @@ class OctoCrabApi {
     final link = hasAddressAlready? params : '$_address$params';
     final url = Uri.tryParse(link);
     if (url==null){
+      final errStr='bad url\n"$link"\ncheck your settings';
+      log.warning(errStr);
       return ApiCallResult(false,
           errorCode: -1,
-          errorString: 'bad url\n"$link"\ncheck your settings');
+          errorString: errStr);
     }
     try {
       log.fine('_client.get initiated : $url');
       response = await _client
           .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
     } on ClientException catch ( e, stacktrace) {
-      log.fine('OctoCrabApi._call exception: $e'); //we shouldn't need a stack trace; this is an 'expected' exception
+      log.fine('OctoCrabApi._call exception: $e'); //we don't need a stack trace; this is an 'expected' exception
       return ApiCallResult(false, errorCode: 0, errorString: e.toString());
     }
 
     if (response.statusCode != 200) {
-      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error')+response.body);
+      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error, but no error info recieved.')+response.body);
       return ApiCallResult(false,
           errorCode: response.statusCode,
-          errorString: response.reasonPhrase ?? 'Error');
+          errorString: response.reasonPhrase ?? 'http Error: ${response.statusCode.toString()} "${response.body}"');
     }
 
     return ApiCallResult<String>(true, data: response.body);
