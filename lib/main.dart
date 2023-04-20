@@ -25,8 +25,10 @@ void main() async {
   });
 
   Logger.root.onRecord.listen((record) {
+    final time=record.time;
+    final timeStr='${time.day}\\${time.hour}:${time.minute}:${time.second}';
     logLines.add(LogLine(record.level,
-        '${record.level.name}: ${record.time}: ${record.message}'));
+        '$timeStr ${record.message}'));
   });
 
   FlutterError.onError = (details) {

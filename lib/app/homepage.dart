@@ -1,4 +1,7 @@
 //import 'package:flutter/foundation.dart';
+import 'dart:ui';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -377,7 +380,50 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
             ]),
           )),
         ),
-        body: CustomScrollView(
+        body: _showLog ?  //todo: refactor to _showLog
+    Container(
+      color: Color(0x11111111),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text('Log : ',
+                  style:
+                  TextStyle(fontWeight: FontWeight.bold)),
+              IconButton(
+                  icon: Icon(Icons.keyboard_double_arrow_down),
+                  onPressed: () => _scrollLogDown()),
+              IconButton(
+                  icon: Icon(Icons.keyboard_double_arrow_up),
+                  onPressed: () => _scrollLogUp()),
+            ],
+          ),
+          SizedBox(
+            height: 600,
+            child: Scrollbar(
+              trackVisibility: true,
+              thickness: 10,
+              thumbVisibility: true,
+              controller: _scrollController,
+              child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: logLines.length,
+                  itemBuilder: (_, idx) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 5.0),
+                      child: SelectableText(style : TextStyle(fontFamily: Platform.isIOS ? "Courier" : "monospace"),
+                          '${idx} ${logLines[idx].line}'),
+                    );
+                  }),
+            ),
+          ),
+        ],
+      ),
+    )
+
+
+        : CustomScrollView(
           slivers: [
             SliverFillRemaining(
               hasScrollBody: true,
@@ -389,6 +435,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
+
                         //OctoText('TEST',100),
                         SizedBox(
                           width: 300,
@@ -505,44 +552,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
 
                               }),
                         ),
-                        if (_showLog) //todo: refactor to _showLog
-                          Container(
-                            color: Color(0x11111111),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Text('Log : ',
-                                        style:
-                                            TextStyle(fontWeight: FontWeight.bold)),
-                                    IconButton(
-                                        icon: Icon(Icons.keyboard_double_arrow_down),
-                                        onPressed: () => _scrollLogDown()),
-                                    IconButton(
-                                        icon: Icon(Icons.keyboard_double_arrow_up),
-                                        onPressed: () => _scrollLogUp()),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 140,
-                                  child: Scrollbar(
-                                    trackVisibility: true,
-                                    thickness: 10,
-                                    thumbVisibility: true,
-                                    controller: _scrollController,
-                                    child: ListView.builder(
-                                        controller: _scrollController,
-                                        itemCount: logLines.length,
-                                        itemBuilder: (_, idx) {
-                                          return SelectableText(
-                                              '${idx} ${logLines[idx].line}');
-                                        }),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+
                       ],
                     ),
                   ),

@@ -157,7 +157,7 @@ class OctoCrabApi {
     String param3 = '',
   }) async {
     _callNumber++;
-    final callNumberStr='http call #$_callNumber';
+    final callNumberStr='#$_callNumber http call ';
 
     try {
       String params = '';
@@ -230,38 +230,38 @@ class OctoCrabApi {
   }
 
   Future<ApiCallResult> connect({String password = ''}) async {
-    log.finest('#${((_callNumber+1).toString())} connect');
+    log.finest('#${((_callNumber+1).toString())} #connect#');
     return await _call(_login_url, param1: _password);
   }
 
   Future<ApiCallResult> switchOn() async {
-    log.finest('#${((_callNumber+1).toString())} switchOn');
+    log.finest('#${((_callNumber+1).toString())} #switchOn#');
     return await _call(_on_url);
   }
 
   Future<ApiCallResult> switchOff() async {
-    log.finest('#${((_callNumber+1).toString())} switchOff');
+    log.finest('#${((_callNumber+1).toString())} #switchOff#');
     return await _call(_off_url);
   }
 
   Future<ApiCallResult> next() async {
-    log.finest('#${((_callNumber+1).toString())} next');
+    log.finest('#${((_callNumber+1).toString())} #next#');
     return await _call(_next_url);
   }
 
   Future<ApiCallResult> previous() async {
-    log.finest('#${((_callNumber+1).toString())} previous');
+    log.finest('#${((_callNumber+1).toString())} #previous#');
     return await _call(_prev_url);
   }
 
   Future<ApiCallResult> shutdown() async {
-    log.finest('#${((_callNumber+1).toString())} shutdown');
+    log.finest('#${((_callNumber+1).toString())} #shutdown#');
     return await _call(_shutdown_url);
   }
 
   
   Future<ApiCallResult> brightness({int value = 125}) async {
-    log.finest('#${((_callNumber+1).toString())} brightness');
+    log.finest('#${((_callNumber+1).toString())} #brightness#');
     return await _call(_brightness_url, param1: value.toString());
   }
 
@@ -272,7 +272,7 @@ class OctoCrabApi {
   //the code has no idea what the server thinks of it all, other than
   //200 or not 200.
   Future<ApiCallResult> userDefined(String url, { String param1='',String param2='', String param3=''}) async {
-    log.finest('#${((_callNumber+1).toString())} userDefined');
+    log.finest('#${((_callNumber+1).toString())} #userDefined#');
     return await _call(url, param1 : param1, param2 : param2 , param3 : param3 );
   }
 }
