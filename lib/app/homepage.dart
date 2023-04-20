@@ -156,9 +156,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     _textControllers.clear();
   }
 
-  _snackBar(context, msg) {
+  _snackBar(context, msg, {bool error=false}) {
+
     final snackBar = SnackBar(
-      content: Text(msg),
+      content: Row(children : [
+        if(error) Icon(Icons.error_outline,color : Colors.red,size: 50, ),
+        if (error) SizedBox(width:40),
+        Text(msg,textScaleFactor: 1.4,)])
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -282,7 +286,8 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   _snackBar(context, 'shutdown signal sent');
                   //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                 } else {
-                  _setStatus(result.errorString);
+                  _setStatus('shutdown failed: ${result.errorString}');
+                  _snackBar(context, 'shutdown signal failed', error: true);
                 }
               }
 

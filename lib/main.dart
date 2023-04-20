@@ -21,7 +21,7 @@ void main() async {
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
+    print('${record.level.name.padRight(8)}: ${record.time}: ${record.message}');
   });
 
   Logger.root.onRecord.listen((record) {
