@@ -266,7 +266,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
             ],
           ),
           actions: [
-            IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red),
+            IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red.shade300),
             onPressed: () async {
 
               final shouldShutdown=await _shutdownDialogBuilder(context) ?? false;

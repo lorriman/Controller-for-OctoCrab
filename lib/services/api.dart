@@ -34,6 +34,7 @@ class ApiCallResult<T> {
 
 class OctoCrabApi {
   late http.Client _client;
+  int _callNumber = 0;
 
   OctoCrabApi() {
     if (true) {//todo: this should be kDebugMode, but testing for a bug on a real server
@@ -121,16 +122,7 @@ class OctoCrabApi {
     required String next_url,
     required String prev_url,
     required String brightness_url,
-/*    required String c1_url,
-    required String c2_url,
-    required String c3_url,
-    required String c4_url,
-    required String c5_url,
-    required String c6_url,
-    required String c7_url,
-    required String c8_url,
-    required String c9_url,
-    required String c10_url, */
+
 
   }) {
     this._address = address;
@@ -142,16 +134,6 @@ class OctoCrabApi {
     this._next_url = next_url;
     this._prev_url = prev_url;
     this._brightness_url = brightness_url;
-/*    this._c1_url=c1_url;
-    this._c2_url=c2_url;
-    this._c3_url=c3_url;
-    this._c4_url=c4_url;
-    this._c5_url=c5_url;
-    this._c6_url=c6_url;
-    this._c7_url=c7_url;
-    this._c8_url=c8_url;
-    this._c9_url=c9_url;
-    this._c10_url=c10_url; */
   }
 
   Future<void> dispose() async {
@@ -167,16 +149,6 @@ class OctoCrabApi {
   String _next_url = '';
   String _prev_url = '';
   String _brightness_url = '';
-/*  String _c1_url='';
-  String _c2_url='';
-  String _c3_url='';
-  String _c4_url='';
-  String _c5_url='';
-  String _c6_url='';
-  String _c7_url='';
-  String _c8_url='';
-  String _c9_url='';
-  String _c10_url=''; */
 
   Future<ApiCallResult> _call(
     String uri, {
@@ -184,90 +156,123 @@ class OctoCrabApi {
     String param2 = '',
     String param3 = '',
   }) async {
-    String params = '';
-    Response response=Response('dummy body',404, reasonPhrase: "dummy response object");
+    _callNumber++;
+    final callNumberStr='http call #$_callNumber';
 
-    final parsed=Uri.tryParse(uri);
-
-    bool hasAddressAlready=false;
-    if (parsed!=null) {
-      try {
-        //the get is redundant since when there's no origin it excepts, forcing us to catch
-        //#annoyingAPI
-        hasAddressAlready = parsed.origin != '';
-      }catch(e) {};
-    }
-
-    if(!hasAddressAlready && _address==''){
-      final errStr='no server configured: $uri';
-      log.warning(errStr);
-      return ApiCallResult(false,
-          errorCode: -1,
-          errorString: errStr);
-    }
-
-    params = uri.replaceFirst('%s', param1);
-    params = params.replaceFirst('%s', param2);
-    params = params.replaceFirst('%s', param3);
-
-    final link = hasAddressAlready? params : '$_address$params';
-    final url = Uri.tryParse(link);
-    if (url==null){
-      final errStr='bad url\n"$link"\ncheck your settings';
-      log.warning(errStr);
-      return ApiCallResult(false,
-          errorCode: -1,
-          errorString: errStr);
-    }
     try {
-      log.fine('_client.get initiated : $url');
-      response = await _client
-          .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
-    } on ClientException catch ( e, stacktrace) {
-      log.fine('OctoCrabApi._call exception: $e'); //we don't need a stack trace; this is an 'expected' exception
-      return ApiCallResult(false, errorCode: 0, errorString: e.toString());
-    }
+      String params = '';
+      Response response = Response(
+          'dummy body', 404, reasonPhrase: "dummy response object");
 
-    if (response.statusCode != 200) {
-      log.fine('OctoCrabApi._call: '+(response.reasonPhrase  ?? 'Error, but no error info recieved.')+response.body);
-      return ApiCallResult(false,
-          errorCode: response.statusCode,
-          errorString: response.reasonPhrase ?? 'http Error: ${response.statusCode.toString()} "${response.body}"');
-    }
+      final parsed = Uri.tryParse(uri);
+      //todo: refactor out of the api and in to a higher level?
+      //supports the usecase of arbitrary servers but that's
+      //not really what an API should be doing (at all).
+      bool hasAddressAlready = false;
+      if (parsed != null) {
+        try {
+          //the get is effectively redundant since when there's no origin it
+          // excepts, forcing us to catch.
+          //#annoyingAPI
+          hasAddressAlready = parsed.origin != '';
+        } catch (e) {
+          //nothing to do, don't change this
+        };
+      }
 
-    return ApiCallResult<String>(true, data: response.body);
+      if (!hasAddressAlready && _address == '') {
+        final errStr = 'no server configured: $uri';
+        log.warning('$callNumberStr: $errStr');
+        return ApiCallResult(false,
+            errorCode: -1,
+            errorString: errStr);
+      }
+
+      params = uri.replaceFirst('%s', param1);
+      params = params.replaceFirst('%s', param2);
+      params = params.replaceFirst('%s', param3);
+
+      final link = hasAddressAlready ? params : '$_address$params';
+      final url = Uri.tryParse(link);
+      if (url == null) {
+        final errStr = 'bad url\n"$link"\ncheck your settings';
+        log.warning('$callNumberStr: $errStr');
+        return ApiCallResult(false,
+            errorCode: -1,
+            errorString: errStr);
+      }
+      try {
+        log.fine('$callNumberStr: _client.get initiated : $url...');
+        response = await _client
+            .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
+      } on ClientException catch (e, stacktrace) {
+        log.shout(
+            '$callNumberStr: OctoCrabApi._call exception: $e'); //we don't need a stack trace; this is an 'expected' exception
+        return ApiCallResult(false, errorCode: 0, errorString: e.toString());
+      }
+
+      if (response.statusCode != 200) {
+        log.fine('$callNumberStr: OctoCrabApi._call: ' +
+            (response.reasonPhrase ?? 'Error, but no error info recieved.') +
+            response.body);
+        return ApiCallResult(false,
+            errorCode: response.statusCode,
+            errorString: response.reasonPhrase ??
+                'http Error: ${response.statusCode.toString()} "${response
+                    .body}"');
+      }
+
+      return ApiCallResult<String>(true, data: response.body);
+    } catch(e, stacktrace) {
+      log.severe('$callNumberStr: BUG! uncaught exception in _call '+e.toString()+'\nSTACKTRACE: ' +stacktrace.toString());
+      return ApiCallResult<String>(false, errorString: 'uncaught exception, this is a BUG. See log.');
+    }
   }
 
   Future<ApiCallResult> connect({String password = ''}) async {
+    log.finest('#${((_callNumber+1).toString())} connect');
     return await _call(_login_url, param1: _password);
   }
 
   Future<ApiCallResult> switchOn() async {
+    log.finest('#${((_callNumber+1).toString())} switchOn');
     return await _call(_on_url);
   }
 
   Future<ApiCallResult> switchOff() async {
+    log.finest('#${((_callNumber+1).toString())} switchOff');
     return await _call(_off_url);
   }
 
   Future<ApiCallResult> next() async {
+    log.finest('#${((_callNumber+1).toString())} next');
     return await _call(_next_url);
   }
 
   Future<ApiCallResult> previous() async {
+    log.finest('#${((_callNumber+1).toString())} previous');
     return await _call(_prev_url);
   }
 
   Future<ApiCallResult> shutdown() async {
+    log.finest('#${((_callNumber+1).toString())} shutdown');
     return await _call(_shutdown_url);
   }
 
   
   Future<ApiCallResult> brightness({int value = 125}) async {
+    log.finest('#${((_callNumber+1).toString())} brightness');
     return await _call(_brightness_url, param1: value.toString());
   }
 
+  //really not an api function, but we're just hacking an app together
+  //eg. support for custom/uer-defined buttons. There's no checking
+  //return codes other than 200=success, so very limited functionality
+  //and pressing a button may or may not do what you expect since
+  //the code has no idea what the server thinks of it all, other than
+  //200 or not 200.
   Future<ApiCallResult> userDefined(String url, { String param1='',String param2='', String param3=''}) async {
+    log.finest('#${((_callNumber+1).toString())} userDefined');
     return await _call(url, param1 : param1, param2 : param2 , param3 : param3 );
   }
 }

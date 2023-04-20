@@ -25,7 +25,7 @@ enum ConfigEnum {
   //the order of items is used to order the UI
   server( enabled: true,
       key: sharedPrefKey_server,
-      label: 'server',
+      label: 'default server',
       example: 'example http://192.168.1.100'),
   shutdown( enabled : true,
        key :sharedPrefKey_shutdown,
