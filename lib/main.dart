@@ -52,11 +52,11 @@ void main() async {
     //helps test as phone dimensions when debugging.
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       if (kDebugMode) {
-        setWindowMaxSize(const Size(450, 800));
-        setWindowMinSize(const Size(450, 800));
+        //setWindowMaxSize(const Size(450, 900));
+        //setWindowMinSize(const Size(384, 400));
       } else {
         //setWindowMaxSize(const Size(384, 700));
-        setWindowMinSize(const Size(384, 700));
+        setWindowMinSize(const Size(384, 400));
       }
       //setWindowMaxSize(const Size(700, 384));
       //setWindowMinSize(const Size(700, 384));
@@ -66,18 +66,18 @@ void main() async {
   }
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  SystemChrome.setPreferredOrientations(
+  /*SystemChrome.setPreferredOrientations(
     [
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ],
-  ).then((val) {
+  ).then((val) {  */
     runApp(ProviderScope(overrides: [
       sharedPreferencesServiceProvider.overrideWithValue(
         SharedPreferencesService(sharedPreferences),
       ),
     ], child: MyApp()));
-  });
+  //});
 //  runApp(const MyApp());
 }
 
@@ -121,7 +121,7 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),*/
-      home: MyHomePage(title: "Robert's controller"),
+      home: MyHomePage(title: "Robert's Controller"),
     );
   }
 }

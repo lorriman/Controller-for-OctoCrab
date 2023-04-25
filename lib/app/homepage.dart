@@ -260,39 +260,43 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                 }),
         //backgroundColor: Colors.white70,
         appBar: NeumorphicAppBar(
-          title: Row(
-            children: [
-              GestureDetector(
-                child: OctoText("Robert's ", 25),
-                onDoubleTap: () => setState(() => _showLog = !_showLog),
-              ),
-              GestureDetector(
-                child: OctoText('controller', 25),
-                onDoubleTap: () => _showAboutDialog(context),
-              ),
-            ],
+          title: FittedBox(
+            child: Row(
+              children: [
+                InkWell(
+                  child: OctoText("Robert's ", 25),
+                  onDoubleTap: () => setState(() => _showLog = !_showLog),
+                ),
+                InkWell(
+                  child: OctoText('controller', 25),
+                  onDoubleTap: () => _showAboutDialog(context),
+                ),
+              ],
+            ),
           ),
           actions: [
-            IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red.shade300),
-            onPressed: () async {
+            FittedBox(
+              child: IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red.shade300),
+              onPressed: () async {
 
-              final shouldShutdown=await _shutdownDialogBuilder(context) ?? false;
+                final shouldShutdown=await _shutdownDialogBuilder(context) ?? false;
 
-              if(shouldShutdown) {
-                _setStatus('sending shut down signal...');
-                final result = await _api.shutdown();
-                if (result.success) {
-                  _setStatus('');
-                  _snackBar(context, 'shutdown signal sent');
-                  //_snackBar(context,result.errorString+' '+result.errorCode.toString());
-                } else {
-                  _setStatus('shutdown failed: ${result.errorString}');
-                  _snackBar(context, 'shutdown signal failed', error: true);
+                if(shouldShutdown) {
+                  _setStatus('sending shut down signal...');
+                  final result = await _api.shutdown();
+                  if (result.success) {
+                    _setStatus('');
+                    _snackBar(context, 'shutdown signal sent');
+                    //_snackBar(context,result.errorString+' '+result.errorCode.toString());
+                  } else {
+                    _setStatus('shutdown error: ${result.errorString}');
+                    _snackBar(context, 'shutdown signal failed', error: true);
+                  }
                 }
-              }
 
-            },iconSize: 50,
-              tooltip: 'shutdown device',
+              },iconSize: 40,
+                tooltip: 'shutdown device',
+              ),
             ),
 
           ],
@@ -327,7 +331,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                 }),
                           ),
                         ),
-                        OctoText('Dark mode', 20),
+                        OctoText('dark mode', 20),
                       ],
                     ),
                   ),
@@ -404,15 +408,15 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   onPressed: () => _scrollLogUp()),
             ],
           ),
-          SizedBox(
-            height: 600,
+          Expanded(// height : 700,
             child: Scrollbar(
               trackVisibility: true,
               thickness: 10,
               thumbVisibility: true,
-              controller: _scrollController,
+              controller: _scrollController,interactive: true,
+
               child: ListView.builder(
-                  controller: _scrollController,
+                  controller: _scrollController,//shrinkWrap: true,
                   itemCount: logLines.length,
                   itemBuilder: (_, idx) {
                     return Padding(
@@ -442,13 +446,13 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                       children: <Widget>[
 
                         //OctoText('TEST',100),
-                        SizedBox(
-                          width: 300,
-                          height: 200,
+                        FittedBox(
+                          //width: 200,
+                          //height: 200,
                           child: OctoButton(
                             'on/off',
                             key: Key('on/off button'),
-                            fontSize: 70,
+                            fontSize: 60,
                             onPressed: () async {
                               ApiCallResult? result;
                               _setStatus('');
@@ -486,8 +490,8 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Container(
-                                  constraints: BoxConstraints(maxWidth: 300),
-                                  height: 100,
+                                  //constraints: BoxConstraints(maxWidth: 300),
+                                  //height: 100,
                                   child: Center(
                                     child: Text(
                                       maxLines: 4,
@@ -503,39 +507,41 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                               ],
                             ),
                           ),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              SizedBox(
-                                width: 150,
-                                height: 100,
-                                child: OctoButton('prev',
-                                    fontSize: 40,
-                                    onPressed: _connected
-                                        ? () async {
-                                      _setStatus('');
-                                            final result= await _api.previous();
+                        FittedBox(
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                FittedBox(
+                                  //width: 150,
+                                  //height: 100,
+                                  child: OctoButton('prev',
+                                      fontSize: 40,
+                                      onPressed: _connected
+                                          ? () async {
+                                        _setStatus('');
+                                              final result= await _api.previous();
 
-                                           _setStatus(result.errorString);
-                                          }
-                                        : null),
-                              ),
-                              SizedBox(
-                                width: 150,
-                                height: 100,
-                                child: OctoButton('next',
-                                    fontSize: 40,
-                                    onPressed: _connected
-                                        ? () async {
-                                      _setStatus('');
-                                      final result= await _api.next();
-                                      _setStatus(result.errorString);
-                                          }
-                                        : null),
-                              )
-                            ]),
+                                             _setStatus(result.errorString);
+                                            }
+                                          : null),
+                                ),
+                                FittedBox(
+                                  //width: 150,
+                                  //height: 100,
+                                  child: OctoButton('next',
+                                      fontSize: 40,
+                                      onPressed: _connected
+                                          ? () async {
+                                        _setStatus('');
+                                        final result= await _api.next();
+                                        _setStatus(result.errorString);
+                                            }
+                                          : null),
+                                )
+                              ]),
+                        ),
                         Padding(
-                          padding: const EdgeInsets.only(left: 32.0, right: 32),
+                          padding: const EdgeInsets.only(left: 12.0, right: 12),
                           child: OctoSlider(
                               enabled: _connected,
                               value: _brightness,
@@ -563,24 +569,27 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   ),
                  //test out for adding user-defined control buttons.
                  if(_hasConfiguredCustomItems()) Flexible( flex : 0,//height : 600,width : 100,
-                  child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children : [ SizedBox(height: 10),
-                    for (var i = 0; i < 10; i++)
-                      OctoButton('c'+(i+1).toString(),fontSize: 18,
-                      onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{
-                        final cLabel='c'+(i+1).toString();
-                        final enumItem=configCustomSet.elementAt(i);
-                        final url=_configItems[enumItem]!.value;
+                  child: FittedBox(
+                    child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children : [ SizedBox(height: 10),
+                      for (var i = 0; i < 10; i++)
+                         OctoButton('c'+(i+1).toString(),margin: 5,fontSize: 18,
+                          onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{
+                            final cLabel='c'+(i+1).toString();
+                            final enumItem=configCustomSet.elementAt(i);
+                            final url=_configItems[enumItem]!.value;
 
-                        ApiCallResult? result;
-                        _setStatus('custom function $cLabel ...');
-                        result = await _api.userDefined(url);
-                        if (!result.success)
-                          _setStatus(cLabel+' '+result.errorString);
+                            ApiCallResult? result;
+                            _setStatus('custom function $cLabel ...');
+                            result = await _api.userDefined(url);
+                            if (!result.success)
+                              _setStatus(cLabel+' '+result.errorString);
 
-                      },)
+                          },),
+                        
 
-                  ]),
+                    ]),
+                  ),
                 ),
                 ],
                ),
@@ -614,6 +623,7 @@ class OctoButton extends StatelessWidget {
     String this.label, {
     this.fontSize = 20,
     this.onPressed,
+        this.margin=10,
         this.tooltip,
     super.key,
   });
@@ -622,10 +632,11 @@ class OctoButton extends StatelessWidget {
   final String label;
   final NeumorphicButtonClickListener? onPressed;
  final String? tooltip;
+ final double margin;
   @override
   Widget build(BuildContext context) {
     return NeumorphicButton(tooltip: tooltip,
-        margin: EdgeInsets.all(10),
+        margin: EdgeInsets.all(margin),
         pressed: null,
         onPressed: onPressed,
         child: Center(
