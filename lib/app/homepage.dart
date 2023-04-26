@@ -496,6 +496,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                     FittedBox(
                                       child: Text(
                                         statusLines[0].trim(),
+                                        style: TextStyle(fontWeight: FontWeight.w600),
                                         maxLines: 4,
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
@@ -503,14 +504,12 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                       ),
                                     ),
                                     for(int i=1;i<statusLines.length;i++)
-                                      FittedBox(
-                                        child: Text(
-                                          statusLines[i].trim(),
-                                          maxLines: 4,
-                                          overflow: TextOverflow.ellipsis,
-                                          softWrap: true,
-                                          textScaleFactor: 1.5,
-                                        ),
+                                      Text(
+                                        statusLines[i].trim(),
+                                        maxLines: 5,
+                                        overflow: TextOverflow.ellipsis,
+                                        //softWrap: true,
+                                        textScaleFactor: 1.5,
                                       ),   
                                     if (_status == 'connecting...')
                                       CircularProgressIndicator(),
