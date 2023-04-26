@@ -483,31 +483,41 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                           ),
                         ),
                         if (_status != '')
-                          FittedBox(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 16.0, right: 16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    //constraints: BoxConstraints(maxWidth: 300),
-                                    //height: 100,
-                                    child: Center(
+                          Builder(
+                            builder: (context) {
+                              final statusLines=_status.split('\n');
+                              
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 16.0, right: 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    FittedBox(
                                       child: Text(
+                                        statusLines[0].trim(),
                                         maxLines: 4,
                                         overflow: TextOverflow.ellipsis,
                                         softWrap: true,
-                                        _status,
                                         textScaleFactor: 1.5,
                                       ),
                                     ),
-                                  ),
-                                  if (_status == 'connecting...')
-                                    CircularProgressIndicator(),
-                                ],
-                              ),
-                            ),
+                                    for(int i=1;i<statusLines.length;i++)
+                                      FittedBox(
+                                        child: Text(
+                                          statusLines[i].trim(),
+                                          maxLines: 4,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          textScaleFactor: 1.5,
+                                        ),
+                                      ),   
+                                    if (_status == 'connecting...')
+                                      CircularProgressIndicator(),
+                                  ],
+                                ),
+                              );
+                            }
                           ),
                         FittedBox(
                           child: Row(

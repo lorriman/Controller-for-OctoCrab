@@ -52,8 +52,8 @@ void main() async {
     //helps test as phone dimensions when debugging.
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       if (kDebugMode) {
-        //setWindowMaxSize(const Size(450, 900));
-        //setWindowMinSize(const Size(384, 400));
+        setWindowMaxSize(const Size(450, 900));
+        setWindowMinSize(const Size(384, 400));
       } else {
         //setWindowMaxSize(const Size(384, 700));
         setWindowMinSize(const Size(384, 400));

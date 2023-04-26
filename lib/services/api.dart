@@ -178,10 +178,16 @@ class OctoCrabApi {
         } catch (e) {
           //nothing to do, don't change this
         };
+      } else {
+        final errStr = 'invalid address:\n $uri';
+        log.warning('$callNumberStr: $errStr');
+        return ApiCallResult(false,
+            errorCode: -1,
+            errorString: errStr);
       }
 
       if (!hasAddressAlready && _address == '') {
-        final errStr = 'no server configured: $uri';
+        final errStr = 'no server configured:\n $uri';
         log.warning('$callNumberStr: $errStr');
         return ApiCallResult(false,
             errorCode: -1,
@@ -195,7 +201,7 @@ class OctoCrabApi {
       final link = hasAddressAlready ? params : '$_address$params';
       final url = Uri.tryParse(link);
       if (url == null) {
-        final errStr = 'bad url\n"$link"\ncheck your settings';
+        final errStr = 'bad url\n"$link"';
         log.warning('$callNumberStr: $errStr');
         return ApiCallResult(false,
             errorCode: -1,
