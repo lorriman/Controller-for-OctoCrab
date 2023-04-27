@@ -66,7 +66,9 @@ void main() async {
   }
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  /*SystemChrome.setPreferredOrientations(
+  /*
+  //this is removed, but layout issues might require its return so left here
+  SystemChrome.setPreferredOrientations(
     [
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
