@@ -1,4 +1,3 @@
-//import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'dart:io';
 
@@ -55,12 +54,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   String _status = '';
   bool _showLog = false;
-  bool _connected = true; //set to false to renable login, see [ConfigEnum] to re-enable options
+  bool _connected = true; //set to false to re-enable login, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
   bool _rateLimitBrightness=false;
 
-  //some paramters are redundant but indicate method behaviour
+  //some parameters are redundant but indicate method behaviour
   @override
   void initState() {
     super.initState();
@@ -116,8 +115,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           enumItem.example;
       final item = ConfigItem(enumItem, value);
       configItems[enumItem] = item;
-      //textControllers[enumItem] = TextEditingController();
-      //textControllers[enumItem]!.text = value;
     }
   }
 
@@ -242,7 +239,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
 
   @override
   Widget build(BuildContext context) {
-    //final darkMode = ref.watch(darkModeProvider);
+
     return Scaffold(
         floatingActionButton: !_showLog
             ? null
@@ -258,7 +255,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                       .catchError(
                           (err) => _snackBar(context, 'Copy failed: $err'));
                 }),
-        //backgroundColor: Colors.white70,
         appBar: NeumorphicAppBar(
           title: FittedBox(
             child: Row(
@@ -287,7 +283,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   if (result.success) {
                     _setStatus('');
                     _snackBar(context, 'shutdown signal sent');
-                    //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                   } else {
                     _setStatus('shutdown error: ${result.errorString}');
                     _snackBar(context, 'shutdown signal failed', error: true);
@@ -373,7 +368,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                     setState((){
                     String str = value.trim();
                     if (str.length > 2040) {
-                      /* max url length =2048*/
+                      /* max url length =2048, we subtract a few bytes */
                       str = str.substring(1, 2040);
                     }
                     sharedPreferencesService.sharedPreferences
@@ -384,8 +379,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   });
                   },
                 ); }(),
-              //Divider(),
-
             ]),
           )),
         ),
@@ -408,7 +401,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                   onPressed: () => _scrollLogUp()),
             ],
           ),
-          Expanded(// height : 700,
+          Expanded(
             child: Scrollbar(
               trackVisibility: true,
               thickness: 10,
@@ -440,15 +433,10 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                 children: [
                   Flexible(flex : 3,
                     child: Column(
-                      //mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-
-                        //OctoText('TEST',100),
                         FittedBox(
-                          //width: 200,
-                          //height: 200,
                           child: OctoButton(
                             'on/off',
                             key: Key('on/off button'),
@@ -466,7 +454,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                   setState(() {
                                     _connected = true;
                                   });
-                                  //_snackBar(context,result.errorString+' '+result.errorCode.toString());
                                 } else {
                                   _setStatus(result.errorString);
                                 }
@@ -508,7 +495,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                         statusLines[i].trim(),
                                         maxLines: 5,
                                         overflow: TextOverflow.ellipsis,
-                                        //softWrap: true,
                                         textScaleFactor: 1.5,
                                       ),   
                                     if (_status == 'connecting...')
@@ -523,8 +509,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 FittedBox(
-                                  //width: 150,
-                                  //height: 100,
                                   child: OctoButton('prev',
                                       fontSize: 40,
                                       onPressed: _connected
@@ -537,8 +521,6 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                                           : null),
                                 ),
                                 FittedBox(
-                                  //width: 150,
-                                  //height: 100,
                                   child: OctoButton('next',
                                       fontSize: 40,
                                       onPressed: _connected
@@ -578,8 +560,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                       ],
                     ),
                   ),
-                 //test out for adding user-defined control buttons.
-                 if(_hasConfiguredCustomItems()) Flexible( flex : 0,//height : 600,width : 100,
+                 if(_hasConfiguredCustomItems()) Flexible( flex : 0,
                   child: FittedBox(
                     child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children : [ SizedBox(height: 10),
@@ -680,10 +661,7 @@ class OctoText extends ConsumerWidget {
       return NeumorphicText(
         text,
         style: NeumorphicStyle(
-          //shadowLightColor: Colors.black,
-          //depth: 2,
           intensity: 0.3,
-          //lightSource: LightSource.topRight,
         ),
         textStyle:
             NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
@@ -691,13 +669,6 @@ class OctoText extends ConsumerWidget {
     } else if (darkMode) {
       return NeumorphicText(
         text,
-        /* style: NeumorphicStyle(
-          //shadowLightColor: Colors.black,
-          //depth: 2,
-          //intensity: 0.4,
-          color: Colors.grey,
-          //lightSource: LightSource.topRight,
-        ), */
         textStyle:
             NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
       );
@@ -705,11 +676,8 @@ class OctoText extends ConsumerWidget {
       return NeumorphicText(
         text,
         style: NeumorphicStyle(
-          //shadowLightColor: Colors.black,
           depth: 0.5,
           intensity: 0.9,
-//          color: Colors.grey,
-          //lightSource: LightSource.topRight,
         ),
         textStyle:
             NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
@@ -720,12 +688,8 @@ class OctoText extends ConsumerWidget {
         style: NeumorphicStyle(
           depth: 4,
           intensity: 1,
-          //shadowDarkColor: Colors.black26,
-          //lightSource: LightSource.topRight,
-          //shape: NeumorphicShape.convex,
           surfaceIntensity: .01,
           color: Colors.white,
-          //oppositeShadowLightSource: true,
         ),
         textStyle:
             NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
@@ -758,10 +722,7 @@ class InputBox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: SizedBox(
-              //flex: 1,
-              //fit: FlexFit.tight,
               height: 50,
-              //width: 250,
               child: TextField(
                 maxLength: maxLength,
                 maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -772,10 +733,6 @@ class InputBox extends StatelessWidget {
                 decoration: InputDecoration(
                   contentPadding:
                       EdgeInsets.only(left: 8, right: 8), // Removes padding
-                  //isDense: true,                   // Centers the text
-                  //border: InputBorder.none,
-                  //hintText: placeholder,
-                  //hintStyle: TextStyle(color: Theme.of(context).hintColor),
                   labelText: label,
                   border: OutlineInputBorder(
                     borderSide: BorderSide(width: 1),

@@ -9,11 +9,15 @@ import 'package:simple_octocrab/services/loggingInst.dart';
 import 'package:http/http.dart';
 
 class ApiCallResult<T> {
-  /// 'success' does not represent a boolean API result but whether the call
-  /// went through to the server. Repositorys can be expected to convert
-  /// a success==false in to an exception, and then perhaps a snackbar.
+  /// NOTE: 'success' does not represent a boolean API result but whether the call
+  /// went through to the server.
+  /// Repositories can be expected to convert
+  /// a success==false in to an exception, and then perhaps a snackbar reporting
+  /// the server error.
   ///
-  /// Rather 'data' represents an API result, so if you needed a boolean
+  /// (Usually an api can be expected to return booleans in
+  //    a json result body, but which we don't test for here.
+  //    So rather 'data' would represent an API result, so if you needed a boolean
   /// your API would do:
   ///
   ///     return ApiCallResult<bool>(true, data: yourBoolean  etc...)
@@ -21,7 +25,8 @@ class ApiCallResult<T> {
   /// and then the caller of your API, after testing 'success', might
   /// do
   ///
-  ///     if(callResult.data){ etc...}
+  ///     if(callResult.data.isWhatWeWanted=='true'){ etc...}
+  /// )
   ///
   ApiCallResult(this.success,
       {this.data, this.errorCode, this.errorString = ''});
@@ -176,7 +181,7 @@ class OctoCrabApi {
           //#annoyingAPI
           hasAddressAlready = parsed.origin != '';
         } catch (e) {
-          //nothing to do, don't change this
+          //nothing to do, but don't change this
         };
       } else {
         final errStr = 'invalid address:\n $uri';
@@ -271,8 +276,8 @@ class OctoCrabApi {
     return await _call(_brightness_url, param1: value.toString());
   }
 
-  //really not an api function, but we're just hacking an app together
-  //eg. support for custom/uer-defined buttons. There's no checking
+  //really not an api function, but we're just hacking this app together
+  //eg. support for custom/user-defined buttons. As above, there's no checking
   //return codes other than 200=success, so very limited functionality
   //and pressing a button may or may not do what you expect since
   //the code has no idea what the server thinks of it all, other than
