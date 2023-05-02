@@ -7,13 +7,14 @@ import '../services/shared_preferences_service.dart';
 import 'config.dart';
 import 'customWidgets.dart';
 
-typedef UpdateCallback = void Function();
+typedef SimpleEvent = void Function();
 
 class SettingsView extends   ConsumerStatefulWidget {
-  SettingsView({super.key, required this.api, this.update});
+  SettingsView({super.key, required this.api, this.update, this.onShutdown});
 
   final OctoCrabApi api;
-  final UpdateCallback? update;
+  final SimpleEvent? update;
+  final SimpleEvent? onShutdown;
 
 
   @override
@@ -91,6 +92,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   @override
   Widget build(BuildContext context) {
     return ListView( shrinkWrap : true, children: [
+
+      Row(
+        children: [
+          Container(  width : 80,
+            child: IconButton(
+              style: ButtonStyle(elevation: MaterialStateProperty.all(20.0),
+                  shadowColor: MaterialStateProperty.all(Colors.red)),
+              icon:
+              Icon(Icons.power_settings_new, color: Colors.red.shade300),
+              onPressed: widget.onShutdown,
+              iconSize: 50,
+              tooltip: 'shutdown device',
+            ),
+          ),
+          Text('shutdown remote device',textScaleFactor: 1.2, style: TextStyle(color: Colors.red)),
+        ],
+      ),
+      Divider(),
       for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
             (){
 
@@ -142,4 +161,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     ]);
   }
+
+
+  
 }

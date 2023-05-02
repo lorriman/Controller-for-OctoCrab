@@ -162,6 +162,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 
+
+  //determines if the user has configured one of the c1-c10 customisable buttons
+  //Not a getter as the compute is relatively expensive
+  bool _hasConfiguredCustomItems() {
+    int c = 0;
+    _configItems.forEach((key, value) {
+      if (configCustomSet.contains(key)) value.value != '' ? c++ : null;
+    });
+    return c > 0;
+  }
+
+  //determines if the custom item c1-c10 has been configured
+  bool _isConfiguredCustomItemByIndex(int idx) {
+    final enumItem = configCustomSet.elementAt(idx);
+    return _isConfiguredCustomItem(enumItem);
+  }
+
+  bool _isConfiguredCustomItem(ConfigEnum enumItem) {
+    return _configItems[enumItem]!.value != '';
+  }
+
+
   Future<bool?> _shutdownDialogBuilder(BuildContext context) {
     return showDialog<bool?>(
       context: context,
@@ -199,25 +221,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 
-  //determines if the user has configured one of the c1-c10 customisable buttons
-  //Not a getter as the compute is relatively expensive
-  bool _hasConfiguredCustomItems() {
-    int c = 0;
-    _configItems.forEach((key, value) {
-      if (configCustomSet.contains(key)) value.value != '' ? c++ : null;
-    });
-    return c > 0;
-  }
-
-  //determines if the custom item c1-c10 has been configured
-  bool _isConfiguredCustomItemByIndex(int idx) {
-    final enumItem = configCustomSet.elementAt(idx);
-    return _isConfiguredCustomItem(enumItem);
-  }
-
-  bool _isConfiguredCustomItem(ConfigEnum enumItem) {
-    return _configItems[enumItem]!.value != '';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,30 +255,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             ),
           ),
           actions: [
-            FittedBox(
-              child: IconButton(
-                icon:
-                    Icon(Icons.power_settings_new, color: Colors.red.shade300),
-                onPressed: () async {
-                  final shouldShutdown =
-                      await _shutdownDialogBuilder(context) ?? false;
-
-                  if (shouldShutdown) {
-                    _setStatus('sending shut down signal...');
-                    final result = await _api.shutdown();
-                    if (result.success) {
-                      _setStatus('');
-                      _snackBar(context, 'shutdown signal sent');
-                    } else {
-                      _setStatus('shutdown error: ${result.errorString}');
-                      _snackBar(context, 'shutdown signal failed', error: true);
-                    }
-                  }
-                },
-                iconSize: 40,
-                tooltip: 'shutdown device',
-              ),
-            ),
           ],
         ),
         drawer: SafeArea(
@@ -324,6 +303,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           _loadConfig(_configItems);
                           //setState(() {});
                         },
+                        onShutdown : () async {
+                          final shouldShutdown =
+                              await _shutdownDialogBuilder(context) ?? false;
+
+                          if (shouldShutdown) {
+                            _setStatus('sending shut down signal...');
+                            final result = await _api.shutdown();
+                            if (result.success) {
+                              _setStatus('');
+                              _snackBar(context, 'shutdown signal sent');
+                            } else {
+                              _setStatus('shutdown error: ${result.errorString}');
+                              _snackBar(context, 'shutdown signal failed', error: true);
+                            }
+                          }
+                        }
                       ),
                     ]),
               )),
