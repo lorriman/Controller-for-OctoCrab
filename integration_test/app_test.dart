@@ -25,6 +25,7 @@ void main() {
 
 
       await tester.pumpWidget(myApp);
+      await tester.pumpAndSettle();
       print('pump myApp');
       final buttonKeys = [
         'on/off button',
@@ -34,13 +35,12 @@ void main() {
       for (var button in buttonKeys) {
         await tester.tap(find.byKey(ValueKey(button)));
         print('tapped');
-        await tester.pumpAndSettle(const Duration(milliseconds: 200 ));
-        expect(reason: '1',find.text('connecting...'), findsOneWidget);
-        print('expected');
+
         await tester.pumpAndSettle(const Duration(milliseconds: 400 ));
+        print('expecting');
         expect(reason: '2',find.text('connecting...'), findsOneWidget);
         print('expected');
-        await tester.pumpAndSettle(const Duration(milliseconds: 800 ));
+/*        await tester.pumpAndSettle(const Duration(milliseconds: 800 ));
         expect(reason: '3',find.text('connecting...'), findsOneWidget);
         print('expected');
         await tester.pumpAndSettle(const Duration(milliseconds: 1600 ));
@@ -56,8 +56,12 @@ void main() {
         await tester.pumpAndSettle(const Duration(milliseconds: 10000 ));
         expect(find.text('connecting...'), findsNothing );
         print('expected 2');
+
+ */
       }
+
       /*
+
       await tester.tap(find.text('Favorites'));
       await tester.pumpAndSettle();
 

@@ -9,6 +9,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:simple_octocrab/app/settings.dart';
 
 import 'package:simple_octocrab/services/api.dart';
 
@@ -16,25 +17,12 @@ import 'package:simple_octocrab/services/shared_preferences_service.dart';
 
 import 'package:clipboard/clipboard.dart';
 
+import 'appproviders.dart';
 import 'config.dart';
 
 import 'package:simple_octocrab/services/loggingInst.dart';
 
-final darkModeProvider = StateProvider<bool>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getBool('darkMode') ?? false;
-});
-
-final brightnessProvider = StateProvider<int>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getInt('brightness') ?? 125;
-});
-
-final rateLimitBrightnessProvider = StateProvider<bool>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getString(sharedPrefKey_rateLimitBrightness)=='true';
-});
-
+import 'customWidgets.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   MyHomePage({super.key, required this.title});
@@ -46,18 +34,18 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-  final Map<ConfigEnum, TextEditingController> _textControllers = {};
   final ScrollController _scrollController = ScrollController();
 
-  final Map<ConfigEnum, ConfigItem> _configItems = {};
   final OctoCrabApi _api = OctoCrabApi();
+  final Map<ConfigEnum, ConfigItem> _configItems = {};
 
   String _status = '';
   bool _showLog = false;
-  bool _connected = true; //set to false to re-enable login, see [ConfigEnum] to re-enable options
+  bool _connected =
+      true; //set to false to re-enable login, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
-  bool _rateLimitBrightness=false;
+  bool _rateLimitBrightness = false;
 
   //some parameters are redundant but indicate method behaviour
   @override
@@ -65,17 +53,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
     _initLogger();
     _loadConfig(_configItems);
-    _initTextControllers(_configItems, _textControllers);
     _initBrightness(ref);
     _configureApi(_configItems);
   }
 
-
   _initBrightness(ref) {
     _brightness = ref.read(brightnessProvider).toDouble();
-    _rateLimitBrightness= ref.read(rateLimitBrightnessProvider);
+    _rateLimitBrightness = ref.read(rateLimitBrightnessProvider);
   }
-
 
   _initLogger() {
     Logger.root.onRecord.listen((record) {
@@ -118,18 +103,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     }
   }
 
-  _initTextControllers(configItems, textControllers) {
-    for (final enumItem in ConfigEnum.values) {
-      final value = configItems[enumItem].value;
-      textControllers[enumItem] = TextEditingController();
-      textControllers[enumItem]!.text = value;
-    }
-  }
-
   _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
     _api.init(
       address: configItems[ConfigEnum.server]!.value,
-      shutdown : configItems[ConfigEnum.shutdown]!.value,
+      shutdown: configItems[ConfigEnum.shutdown]!.value,
       password: configItems[ConfigEnum.password]!.value,
       login_url: configItems[ConfigEnum.login]!.value,
       on_url: configItems[ConfigEnum.switchOn]!.value,
@@ -148,19 +125,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.dispose();
   }
 
-  _disposeTextControllers() {
-    _textControllers.forEach((key, value) => value.dispose());
-    _textControllers.clear();
-  }
+  _disposeTextControllers() {}
 
-  _snackBar(context, msg, {bool error=false}) {
-
+  _snackBar(context, msg, {bool error = false}) {
     final snackBar = SnackBar(
-      content: Row(children : [
-        if(error) Icon(Icons.error_outline,color : Colors.red,size: 50, ),
-        if (error) SizedBox(width:40),
-        Text(msg,textScaleFactor: 1.4,)])
-    );
+        content: Row(children: [
+      if (error)
+        Icon(
+          Icons.error_outline,
+          color: Colors.red,
+          size: 50,
+        ),
+      if (error) SizedBox(width: 40),
+      Text(
+        msg,
+        textScaleFactor: 1.4,
+      )
+    ]));
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
@@ -185,27 +166,29 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return showDialog<bool?>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(icon:Icon(size: 70,Icons.power_settings_new,color : Colors.red) ,
+        return AlertDialog(
+          icon: Icon(size: 70, Icons.power_settings_new, color: Colors.red),
           //title: const Text('Shutdown'),
-shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
-          content: const Text('Are you sure you wish to shutdown the remote device?',textScaleFactor: 1.3),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(30))),
+          content: const Text(
+              'Are you sure you wish to shutdown the remote device?',
+              textScaleFactor: 1.3),
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
                 textStyle: Theme.of(context).textTheme.labelLarge,
-              )
-              ,
-              child: const Text('Yes',textScaleFactor: 2),
+              ),
+              child: const Text('Yes', textScaleFactor: 2),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-
             ),
             TextButton(
               style: TextButton.styleFrom(
                 textStyle: Theme.of(context).textTheme.labelLarge,
               ),
-              child: const Text('Cancel ',textScaleFactor: 2),
+              child: const Text('Cancel ', textScaleFactor: 2),
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
@@ -218,28 +201,26 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
 
   //determines if the user has configured one of the c1-c10 customisable buttons
   //Not a getter as the compute is relatively expensive
-  bool _hasConfiguredCustomItems(){
-    int c=0;
+  bool _hasConfiguredCustomItems() {
+    int c = 0;
     _configItems.forEach((key, value) {
-      if (configCustomSet.contains(key))
-        value.value!='' ? c++:null;
+      if (configCustomSet.contains(key)) value.value != '' ? c++ : null;
     });
-    return c>0;
+    return c > 0;
   }
 
   //determines if the custom item c1-c10 has been configured
-  bool _isConfiguredCustomItemByIndex(int idx){
-    final enumItem=configCustomSet.elementAt(idx);
+  bool _isConfiguredCustomItemByIndex(int idx) {
+    final enumItem = configCustomSet.elementAt(idx);
     return _isConfiguredCustomItem(enumItem);
   }
 
-  bool _isConfiguredCustomItem(ConfigEnum enumItem){
-    return _configItems[enumItem]!.value!='';
+  bool _isConfiguredCustomItem(ConfigEnum enumItem) {
+    return _configItems[enumItem]!.value != '';
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
         floatingActionButton: !_showLog
             ? null
@@ -272,530 +253,320 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
           ),
           actions: [
             FittedBox(
-              child: IconButton( icon: Icon(Icons.power_settings_new,color : Colors.red.shade300),
-              onPressed: () async {
+              child: IconButton(
+                icon:
+                    Icon(Icons.power_settings_new, color: Colors.red.shade300),
+                onPressed: () async {
+                  final shouldShutdown =
+                      await _shutdownDialogBuilder(context) ?? false;
 
-                final shouldShutdown=await _shutdownDialogBuilder(context) ?? false;
-
-                if(shouldShutdown) {
-                  _setStatus('sending shut down signal...');
-                  final result = await _api.shutdown();
-                  if (result.success) {
-                    _setStatus('');
-                    _snackBar(context, 'shutdown signal sent');
-                  } else {
-                    _setStatus('shutdown error: ${result.errorString}');
-                    _snackBar(context, 'shutdown signal failed', error: true);
+                  if (shouldShutdown) {
+                    _setStatus('sending shut down signal...');
+                    final result = await _api.shutdown();
+                    if (result.success) {
+                      _setStatus('');
+                      _snackBar(context, 'shutdown signal sent');
+                    } else {
+                      _setStatus('shutdown error: ${result.errorString}');
+                      _snackBar(context, 'shutdown signal failed', error: true);
+                    }
                   }
-                }
-
-              },iconSize: 40,
+                },
+                iconSize: 40,
                 tooltip: 'shutdown device',
               ),
             ),
-
           ],
         ),
         drawer: SafeArea(
-          child: Drawer( width: 350,
+          child: Drawer(
+              width: 350,
               child: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OctoText('Settings', 40),
-              ),
-              Divider(),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          width: 120,
-                          child: SizedBox(
-                            width: 100,
-                            child: OctoSwitch(
-                                value: ref.read(darkModeProvider), //flicker?
-                                onChanged: (value) {
-                                  ref.read(darkModeProvider.notifier).state = value;
-                                  final sharedPreferencesService =
-                                  ref.read(sharedPreferencesServiceProvider);
-                                  sharedPreferencesService.sharedPreferences
-                                      .setBool('darkMode', value);
-                                }),
-                          ),
-                        ),
-                        OctoText('dark mode', 20),
-                      ],
-                    ),
-                  ),
-              Divider(),
-              for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
-              (){
-
-                final sharedPreferencesService =
-                ref.read(sharedPreferencesServiceProvider);
-
-
-                if (item.itemEnum.checkbox){
-                  final value=sharedPreferencesService.sharedPreferences
-                      .getString(item.itemEnum.key) ?? 'false';
-                  return Row(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Checkbox(value:value=='true',onChanged: true ? null : (value){
-
-                        sharedPreferencesService.sharedPreferences
-                            .setString(item.itemEnum.key, value! ? 'true' : 'false' );
-                      }
-                        , ),
-                      Text(item.itemEnum.label+' (tba)',style: TextStyle(color: Colors.grey)),
-                    ],
-
-                  );
-                }
-
-                return InputBox(
-                  item.itemEnum.label,
-                  _textControllers[item.itemEnum]!,
-                  sharedPrefKey: item.itemEnum.key,
-                  ref: ref,
-                  password: item.itemEnum.key == sharedPrefKey_password,
-                  onChanged: (value) {
-                    //brute-forcing the update because the Drawer doesn't have events like onUnShow
-                   // which means the c1-10 custom functions don't appear/disappear as they should
-                    //todo: optimise the setState
-                    setState((){
-                    String str = value.trim();
-                    if (str.length > 2040) {
-                      /* max url length =2048, we subtract a few bytes */
-                      str = str.substring(1, 2040);
-                    }
-                    sharedPreferencesService.sharedPreferences
-                        .setString(item.itemEnum.key, str);
-                    _configItems[item.itemEnum] =
-                        ConfigItem(item.itemEnum, str);
-                    _configureApi(_configItems);
-                  });
-                  },
-                ); }(),
-            ]),
-          )),
-        ),
-        body: _showLog ?  //todo: refactor to _showLog
-    Container(
-      color: Color(0x11111111),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text('Log : ',
-                  style:
-                  TextStyle(fontWeight: FontWeight.bold)),
-              IconButton(
-                  icon: Icon(Icons.keyboard_double_arrow_down),
-                  onPressed: () => _scrollLogDown()),
-              IconButton(
-                  icon: Icon(Icons.keyboard_double_arrow_up),
-                  onPressed: () => _scrollLogUp()),
-            ],
-          ),
-          Expanded(
-            child: Scrollbar(
-              trackVisibility: true,
-              thickness: 10,
-              thumbVisibility: true,
-              controller: _scrollController,interactive: true,
-
-              child: ListView.builder(
-                  controller: _scrollController,//shrinkWrap: true,
-                  itemCount: logLines.length,
-                  itemBuilder: (_, idx) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 5.0),
-                      child: SelectableText(style : TextStyle(fontFamily: Platform.isIOS ? "Courier" : "monospace"),
-                          '${idx} ${logLines[idx].line}'),
-                    );
-                  }),
-            ),
-          ),
-        ],
-      ),
-    )
-
-
-        : CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: true,
-              child: Row(
-                children: [
-                  Flexible(flex : 3,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        FittedBox(
-                          child: OctoButton(
-                            'on/off',
-                            key: Key('on/off button'),
-                            fontSize: 60,
-                            onPressed: () async {
-                              ApiCallResult? result;
-                              _setStatus('');
-                              if (!_connected) {
-                                final password =
-                                    _configItems[ConfigEnum.password]!.value;
-                                _setStatus('connecting...');
-                                 result = await _api.connect(password: password);
-                                if (result.success) {
-                                  _setStatus('');
-                                  setState(() {
-                                    _connected = true;
-                                  });
-                                } else {
-                                  _setStatus(result.errorString);
-                                }
-                              }
-                              if (_connected) {
-                                _is_on = !_is_on;
-                                if (_is_on)
-                                  result = await _api.switchOff();
-                                else
-                                  result = await  _api.switchOn();
-                                if (!result.success) _setStatus(result.errorString);
-                              }
-                            },
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: OctoText('Settings', 40),
+                      ),
+                      Divider(),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              width: 120,
+                              child: SizedBox(
+                                width: 100,
+                                child: OctoSwitch(
+                                    value:
+                                        ref.read(darkModeProvider), //flicker?
+                                    onChanged: (value) {
+                                      ref
+                                          .read(darkModeProvider.notifier)
+                                          .state = value;
+                                      final sharedPreferencesService = ref.read(
+                                          sharedPreferencesServiceProvider);
+                                      sharedPreferencesService.sharedPreferences
+                                          .setBool('darkMode', value);
+                                    }),
+                              ),
+                            ),
+                            OctoText('dark mode', 20),
+                          ],
                         ),
-                        if (_status != '')
-                          Builder(
-                            builder: (context) {
-                              final statusLines=_status.split('\n');
-                              
-                              return Padding(
-                                padding: const EdgeInsets.only(left: 16.0, right: 16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    FittedBox(
-                                      child: Text(
-                                        statusLines[0].trim(),
-                                        style: TextStyle(fontWeight: FontWeight.w600),
-                                        maxLines: 4,
-                                        overflow: TextOverflow.ellipsis,
-                                        softWrap: true,
-                                        textScaleFactor: 1.5,
-                                      ),
-                                    ),
-                                    for(int i=1;i<statusLines.length;i++)
-                                      Text(
-                                        statusLines[i].trim(),
-                                        maxLines: 5,
-                                        overflow: TextOverflow.ellipsis,
-                                        textScaleFactor: 1.5,
-                                      ),   
-                                    if (_status == 'connecting...')
-                                      CircularProgressIndicator(),
-                                  ],
-                                ),
-                              );
-                            }
-                          ),
-                        FittedBox(
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                FittedBox(
-                                  child: OctoButton('prev',
-                                      fontSize: 40,
-                                      onPressed: _connected
-                                          ? () async {
-                                        _setStatus('');
-                                              final result= await _api.previous();
-
-                                             _setStatus(result.errorString);
-                                            }
-                                          : null),
-                                ),
-                                FittedBox(
-                                  child: OctoButton('next',
-                                      fontSize: 40,
-                                      onPressed: _connected
-                                          ? () async {
-                                        _setStatus('');
-                                        final result= await _api.next();
-                                        _setStatus(result.errorString);
-                                            }
-                                          : null),
-                                )
-                              ]),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0, right: 12),
-                          child: OctoSlider(
-                              enabled: _connected,
-                              value: _brightness,
-                              onChange: (value) {
-                                _setStatus('');
-                                setState(() => _brightness = value);
-                              },
-                              onChangeEnd: (value) async {
-                                setState(() {
-                                  ref.read(brightnessProvider.notifier).state =
-                                      value.toInt();
-                                });
-                                final sharedPreferencesService =
-                                    ref.read(sharedPreferencesServiceProvider);
-                                sharedPreferencesService.sharedPreferences
-                                    .setInt('brightness', value.toInt());
-                                final result=await _api.brightness(value: value.toInt());
-                                _setStatus(result.errorString);
-
-                              }),
-                        ),
-
-                      ],
-                    ),
-                  ),
-                 if(_hasConfiguredCustomItems()) Flexible( flex : 0,
-                  child: FittedBox(
-                    child: Column( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children : [ SizedBox(height: 10),
-                      for (var i = 0; i < 10; i++)
-                         OctoButton('c'+(i+1).toString(),margin: 5,fontSize: 18,
-                          onPressed: !_isConfiguredCustomItemByIndex(i) ? null: ()async{
-                            final cLabel='c'+(i+1).toString();
-                            final enumItem=configCustomSet.elementAt(i);
-                            final url=_configItems[enumItem]!.value;
-
-                            ApiCallResult? result;
-                            _setStatus('custom function $cLabel ...');
-                            result = await _api.userDefined(url);
-                            if (!result.success)
-                              _setStatus(cLabel+' '+result.errorString);
-
-                          },),
-                        
-
+                      ),
+                      Divider(),
+                      SettingsView(
+                        api: _api,
+                        update: () {
+                          _loadConfig(_configItems);
+                          //setState(() {});
+                        },
+                      ),
                     ]),
-                  ),
-                ),
-                ],
-               ),
-            )
-          ],
-        ));
-  }
-}
-
-class OctoSwitch extends ConsumerWidget {
-  const OctoSwitch({
-    required this.value,
-    this.onChanged,
-    super.key,
-  });
-
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context, ref) {
-    return NeumorphicSwitch(
-      value: value,
-      onChanged: onChanged,
-    );
-  }
-}
-
-class OctoButton extends StatelessWidget {
-  const OctoButton(
-    String this.label, {
-    this.fontSize = 20,
-    this.onPressed,
-        this.margin=10,
-        this.tooltip,
-    super.key,
-  });
-
-  final double fontSize;
-  final String label;
-  final NeumorphicButtonClickListener? onPressed;
- final String? tooltip;
- final double margin;
-  @override
-  Widget build(BuildContext context) {
-    return NeumorphicButton(tooltip: tooltip,
-        margin: EdgeInsets.all(margin),
-        pressed: null,
-        onPressed: onPressed,
-        child: Center(
-          child: OctoText(
-            label,
-            fontSize,
-            disabled: onPressed == null,
-          ),
-        ));
-  }
-}
-
-class OctoText extends ConsumerWidget {
-  const OctoText(
-    this.text,
-    this.size, {
-    this.disabled = false,
-    super.key,
-  });
-
-  final String text;
-  final double size;
-  final bool disabled;
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final darkMode = ref.watch(darkModeProvider);
-
-    if (disabled & darkMode) {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          intensity: 0.3,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else if (darkMode) {
-      return NeumorphicText(
-        text,
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else if (disabled) {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          depth: 0.5,
-          intensity: 0.9,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          depth: 4,
-          intensity: 1,
-          surfaceIntensity: .01,
-          color: Colors.white,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    }
-  }
-}
-
-class InputBox extends StatelessWidget {
-  const InputBox(this.label, this.controller,
-      {required this.sharedPrefKey,
-      required this.ref,
-      this.password = false,
-      this.maxLength,
-      this.onChanged,
-      super.key});
-
-  final String label;
-  final int? maxLength;
-  final sharedPrefKey;
-  final TextEditingController controller;
-  final WidgetRef ref;
-  final bool password;
-  final ValueChanged<String>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-      Flexible(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: SizedBox(
-              height: 50,
-              child: TextField(
-                maxLength: maxLength,
-                maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                maxLines: 1,
-                obscureText: password,
-                onChanged: onChanged,
-                controller: controller,
-                decoration: InputDecoration(
-                  contentPadding:
-                      EdgeInsets.only(left: 8, right: 8), // Removes padding
-                  labelText: label,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(width: 1),
-                  ),
-                ),
               )),
         ),
-      ),
-    ]);
-  }
-}
+        body: _showLog
+            ? //todo: refactor to _showLog
+            Container(
+                color: Color(0x11111111),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text('Log : ',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        IconButton(
+                            icon: Icon(Icons.keyboard_double_arrow_down),
+                            onPressed: () => _scrollLogDown()),
+                        IconButton(
+                            icon: Icon(Icons.keyboard_double_arrow_up),
+                            onPressed: () => _scrollLogUp()),
+                      ],
+                    ),
+                    Expanded(
+                      child: Scrollbar(
+                        trackVisibility: true,
+                        thickness: 10,
+                        thumbVisibility: true,
+                        controller: _scrollController,
+                        interactive: true,
+                        child: ListView.builder(
+                            controller: _scrollController, //shrinkWrap: true,
+                            itemCount: logLines.length,
+                            itemBuilder: (_, idx) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 5.0),
+                                child: SelectableText(
+                                    style: TextStyle(
+                                        fontFamily: Platform.isIOS
+                                            ? "Courier"
+                                            : "monospace"),
+                                    '${idx} ${logLines[idx].line}'),
+                              );
+                            }),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: true,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          flex: 3,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              FittedBox(
+                                child: OctoButton(
+                                  'on/off',
+                                  key: Key('on/off button'),
+                                  fontSize: 60,
+                                  onPressed: () async {
+                                    ApiCallResult? result;
+                                    _setStatus('');
+                                    if (!_connected) {
+                                      final password =
+                                          _configItems[ConfigEnum.password]!
+                                              .value;
+                                      _setStatus('connecting...');
+                                      result = await _api.connect(
+                                          password: password);
+                                      if (result.success) {
+                                        _setStatus('');
+                                        setState(() {
+                                          _connected = true;
+                                        });
+                                      } else {
+                                        _setStatus(result.errorString);
+                                      }
+                                    }
+                                    if (_connected) {
+                                      _is_on = !_is_on;
+                                      if (_is_on)
+                                        result = await _api.switchOff();
+                                      else
+                                        result = await _api.switchOn();
+                                      if (!result.success)
+                                        _setStatus(result.errorString);
+                                    }
+                                  },
+                                ),
+                              ),
+                              if (_status != '')
+                                Builder(builder: (context) {
+                                  final statusLines = _status.split('\n');
 
-class OctoSlider extends ConsumerWidget {
-  const OctoSlider({
-    bool this.enabled = true,
-    this.onChange,
-    this.onChangeEnd,
-    required this.value,
-    super.key,
-  });
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 16.0, right: 16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        FittedBox(
+                                          child: Text(
+                                            statusLines[0].trim(),
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600),
+                                            maxLines: 4,
+                                            overflow: TextOverflow.ellipsis,
+                                            softWrap: true,
+                                            textScaleFactor: 1.5,
+                                          ),
+                                        ),
+                                        for (int i = 1;
+                                            i < statusLines.length;
+                                            i++)
+                                          Text(
+                                            statusLines[i].trim(),
+                                            maxLines: 5,
+                                            overflow: TextOverflow.ellipsis,
+                                            textScaleFactor: 1.5,
+                                          ),
+                                        if (_status == 'connecting...')
+                                          CircularProgressIndicator(),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              FittedBox(
+                                child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      FittedBox(
+                                        child: OctoButton('prev',
+                                            fontSize: 40,
+                                            onPressed: _connected
+                                                ? () async {
+                                                    _setStatus('');
+                                                    final result =
+                                                        await _api.previous();
 
-  final double value;
-  final bool enabled;
-  final NeumorphicSliderListener? onChange;
-  final NeumorphicSliderListener? onChangeEnd;
+                                                    _setStatus(
+                                                        result.errorString);
+                                                  }
+                                                : null),
+                                      ),
+                                      FittedBox(
+                                        child: OctoButton('next',
+                                            fontSize: 40,
+                                            onPressed: _connected
+                                                ? () async {
+                                                    _setStatus('');
+                                                    final result =
+                                                        await _api.next();
+                                                    _setStatus(
+                                                        result.errorString);
+                                                  }
+                                                : null),
+                                      )
+                                    ]),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 12.0, right: 12),
+                                child: OctoSlider(
+                                    enabled: _connected,
+                                    value: _brightness,
+                                    onChange: (value) {
+                                      _setStatus('');
+                                      setState(() => _brightness = value);
+                                    },
+                                    onChangeEnd: (value) async {
+                                      setState(() {
+                                        ref
+                                            .read(brightnessProvider.notifier)
+                                            .state = value.toInt();
+                                      });
+                                      final sharedPreferencesService = ref.read(
+                                          sharedPreferencesServiceProvider);
+                                      sharedPreferencesService.sharedPreferences
+                                          .setInt('brightness', value.toInt());
+                                      final result = await _api.brightness(
+                                          value: value.toInt());
+                                      _setStatus(result.errorString);
+                                    }),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_hasConfiguredCustomItems())
+                          Flexible(
+                            flex: 0,
+                            child: FittedBox(
+                              child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    SizedBox(height: 10),
+                                    for (var i = 0; i < 10; i++)
+                                      OctoButton(
+                                        'c' + (i + 1).toString(),
+                                        margin: 5,
+                                        fontSize: 18,
+                                        onPressed:
+                                            !_isConfiguredCustomItemByIndex(i)
+                                                ? null
+                                                : () async {
+                                                    final cLabel = 'c' +
+                                                        (i + 1).toString();
+                                                    final enumItem =
+                                                        configCustomSet
+                                                            .elementAt(i);
+                                                    final url =
+                                                        _configItems[enumItem]!
+                                                            .value;
 
-  @override
-  Widget build(BuildContext context, ref) {
-    return NeumorphicSlider(
-      style: enabled
-          ? (ref.watch(darkModeProvider)
-              ? SliderStyle(
-                  accent: Colors.black,
-                  variant: Colors.black,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)
-              : SliderStyle(
-                  accent: Colors.white,
-                  variant: Colors.grey,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4))
-          : (ref.watch(darkModeProvider)
-              ? SliderStyle(
-                  border: NeumorphicBorder(
-                      isEnabled: true, width: 2, color: Color(0x11111111)),
-                  disableDepth: true,
-                  accent: Colors.black26,
-                  variant: Colors.black26,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)
-              : SliderStyle(
-                  border: NeumorphicBorder(
-                      isEnabled: true, width: 2, color: Color(0xEEEEEEEE)),
-                  disableDepth: true,
-                  accent: Colors.white,
-                  variant: Colors.white,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)),
-      max: 255,
-      min: 1,
-      value: value,
-      onChanged: onChange,
-      onChangeEnd: onChangeEnd,
-    );
+                                                    ApiCallResult? result;
+                                                    _setStatus(
+                                                        'custom function $cLabel ...');
+                                                    result = await _api
+                                                        .userDefined(url);
+                                                    if (!result.success)
+                                                      _setStatus(cLabel +
+                                                          ' ' +
+                                                          result.errorString);
+                                                  },
+                                      ),
+                                  ]),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                ],
+              ));
   }
 }
