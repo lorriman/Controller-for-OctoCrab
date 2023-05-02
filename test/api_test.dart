@@ -3,7 +3,7 @@ import 'package:simple_octocrab/services/api.dart';
 
 void main() {
   group('Testing App Provider', () {
-    var api = OctoCrabApi(test: true);
+    var api = OctoCrabApi();
 
 
 
@@ -17,6 +17,7 @@ void main() {
         off_url: 'action=off',
         on_url : 'action=on',
         password: '123',
+        shutdown : '',
       );
 
       final res=await api.connect(password :'123');

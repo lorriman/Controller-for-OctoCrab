@@ -14,6 +14,7 @@ import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
 
+import 'app/appproviders.dart';
 import 'app/homepage.dart';
 
 void main() async {

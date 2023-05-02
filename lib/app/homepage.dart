@@ -16,24 +16,13 @@ import 'package:simple_octocrab/services/shared_preferences_service.dart';
 
 import 'package:clipboard/clipboard.dart';
 
+import 'appproviders.dart';
 import 'config.dart';
 
 import 'package:simple_octocrab/services/loggingInst.dart';
 
-final darkModeProvider = StateProvider<bool>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getBool('darkMode') ?? false;
-});
+import 'customWidgets.dart';
 
-final brightnessProvider = StateProvider<int>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getInt('brightness') ?? 125;
-});
-
-final rateLimitBrightnessProvider = StateProvider<bool>((ref) {
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-  return prefService.sharedPreferences.getString(sharedPrefKey_rateLimitBrightness)=='true';
-});
 
 
 class MyHomePage extends ConsumerStatefulWidget {
@@ -46,11 +35,13 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
-  final Map<ConfigEnum, TextEditingController> _textControllers = {};
   final ScrollController _scrollController = ScrollController();
 
-  final Map<ConfigEnum, ConfigItem> _configItems = {};
+
   final OctoCrabApi _api = OctoCrabApi();
+  final Map<ConfigEnum, ConfigItem> _configItems = {};
+
+
 
   String _status = '';
   bool _showLog = false;
@@ -65,7 +56,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
     _initLogger();
     _loadConfig(_configItems);
-    _initTextControllers(_configItems, _textControllers);
     _initBrightness(ref);
     _configureApi(_configItems);
   }
@@ -105,6 +95,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
+
   void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
 
@@ -118,13 +109,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     }
   }
 
-  _initTextControllers(configItems, textControllers) {
-    for (final enumItem in ConfigEnum.values) {
-      final value = configItems[enumItem].value;
-      textControllers[enumItem] = TextEditingController();
-      textControllers[enumItem]!.text = value;
-    }
-  }
 
   _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
     _api.init(
@@ -140,6 +124,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 
+
+
   @override
   void dispose() {
     _disposeTextControllers();
@@ -149,8 +135,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   }
 
   _disposeTextControllers() {
-    _textControllers.forEach((key, value) => value.dispose());
-    _textControllers.clear();
   }
 
   _snackBar(context, msg, {bool error=false}) {
@@ -331,54 +315,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                     ),
                   ),
               Divider(),
-              for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
-              (){
 
-                final sharedPreferencesService =
-                ref.read(sharedPreferencesServiceProvider);
-
-
-                if (item.itemEnum.checkbox){
-                  final value=sharedPreferencesService.sharedPreferences
-                      .getString(item.itemEnum.key) ?? 'false';
-                  return Row(
-                    children: [
-                      Checkbox(value:value=='true',onChanged: true ? null : (value){
-
-                        sharedPreferencesService.sharedPreferences
-                            .setString(item.itemEnum.key, value! ? 'true' : 'false' );
-                      }
-                        , ),
-                      Text(item.itemEnum.label+' (tba)',style: TextStyle(color: Colors.grey)),
-                    ],
-
-                  );
-                }
-
-                return InputBox(
-                  item.itemEnum.label,
-                  _textControllers[item.itemEnum]!,
-                  sharedPrefKey: item.itemEnum.key,
-                  ref: ref,
-                  password: item.itemEnum.key == sharedPrefKey_password,
-                  onChanged: (value) {
-                    //brute-forcing the update because the Drawer doesn't have events like onUnShow
-                   // which means the c1-10 custom functions don't appear/disappear as they should
-                    //todo: optimise the setState
-                    setState((){
-                    String str = value.trim();
-                    if (str.length > 2040) {
-                      /* max url length =2048, we subtract a few bytes */
-                      str = str.substring(1, 2040);
-                    }
-                    sharedPreferencesService.sharedPreferences
-                        .setString(item.itemEnum.key, str);
-                    _configItems[item.itemEnum] =
-                        ConfigItem(item.itemEnum, str);
-                    _configureApi(_configItems);
-                  });
-                  },
-                ); }(),
             ]),
           )),
         ),
@@ -591,211 +528,3 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
   }
 }
 
-class OctoSwitch extends ConsumerWidget {
-  const OctoSwitch({
-    required this.value,
-    this.onChanged,
-    super.key,
-  });
-
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context, ref) {
-    return NeumorphicSwitch(
-      value: value,
-      onChanged: onChanged,
-    );
-  }
-}
-
-class OctoButton extends StatelessWidget {
-  const OctoButton(
-    String this.label, {
-    this.fontSize = 20,
-    this.onPressed,
-        this.margin=10,
-        this.tooltip,
-    super.key,
-  });
-
-  final double fontSize;
-  final String label;
-  final NeumorphicButtonClickListener? onPressed;
- final String? tooltip;
- final double margin;
-  @override
-  Widget build(BuildContext context) {
-    return NeumorphicButton(tooltip: tooltip,
-        margin: EdgeInsets.all(margin),
-        pressed: null,
-        onPressed: onPressed,
-        child: Center(
-          child: OctoText(
-            label,
-            fontSize,
-            disabled: onPressed == null,
-          ),
-        ));
-  }
-}
-
-class OctoText extends ConsumerWidget {
-  const OctoText(
-    this.text,
-    this.size, {
-    this.disabled = false,
-    super.key,
-  });
-
-  final String text;
-  final double size;
-  final bool disabled;
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final darkMode = ref.watch(darkModeProvider);
-
-    if (disabled & darkMode) {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          intensity: 0.3,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else if (darkMode) {
-      return NeumorphicText(
-        text,
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else if (disabled) {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          depth: 0.5,
-          intensity: 0.9,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    } else {
-      return NeumorphicText(
-        text,
-        style: NeumorphicStyle(
-          depth: 4,
-          intensity: 1,
-          surfaceIntensity: .01,
-          color: Colors.white,
-        ),
-        textStyle:
-            NeumorphicTextStyle(fontSize: size, fontWeight: FontWeight.bold),
-      );
-    }
-  }
-}
-
-class InputBox extends StatelessWidget {
-  const InputBox(this.label, this.controller,
-      {required this.sharedPrefKey,
-      required this.ref,
-      this.password = false,
-      this.maxLength,
-      this.onChanged,
-      super.key});
-
-  final String label;
-  final int? maxLength;
-  final sharedPrefKey;
-  final TextEditingController controller;
-  final WidgetRef ref;
-  final bool password;
-  final ValueChanged<String>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-      Flexible(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: SizedBox(
-              height: 50,
-              child: TextField(
-                maxLength: maxLength,
-                maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                maxLines: 1,
-                obscureText: password,
-                onChanged: onChanged,
-                controller: controller,
-                decoration: InputDecoration(
-                  contentPadding:
-                      EdgeInsets.only(left: 8, right: 8), // Removes padding
-                  labelText: label,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(width: 1),
-                  ),
-                ),
-              )),
-        ),
-      ),
-    ]);
-  }
-}
-
-class OctoSlider extends ConsumerWidget {
-  const OctoSlider({
-    bool this.enabled = true,
-    this.onChange,
-    this.onChangeEnd,
-    required this.value,
-    super.key,
-  });
-
-  final double value;
-  final bool enabled;
-  final NeumorphicSliderListener? onChange;
-  final NeumorphicSliderListener? onChangeEnd;
-
-  @override
-  Widget build(BuildContext context, ref) {
-    return NeumorphicSlider(
-      style: enabled
-          ? (ref.watch(darkModeProvider)
-              ? SliderStyle(
-                  accent: Colors.black,
-                  variant: Colors.black,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)
-              : SliderStyle(
-                  accent: Colors.white,
-                  variant: Colors.grey,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4))
-          : (ref.watch(darkModeProvider)
-              ? SliderStyle(
-                  border: NeumorphicBorder(
-                      isEnabled: true, width: 2, color: Color(0x11111111)),
-                  disableDepth: true,
-                  accent: Colors.black26,
-                  variant: Colors.black26,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)
-              : SliderStyle(
-                  border: NeumorphicBorder(
-                      isEnabled: true, width: 2, color: Color(0xEEEEEEEE)),
-                  disableDepth: true,
-                  accent: Colors.white,
-                  variant: Colors.white,
-                  lightSource: LightSource.bottomLeft,
-                  depth: 4)),
-      max: 255,
-      min: 1,
-      value: value,
-      onChanged: onChange,
-      onChangeEnd: onChangeEnd,
-    );
-  }
-}
