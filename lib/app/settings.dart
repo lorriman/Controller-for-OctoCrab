@@ -7,10 +7,13 @@ import '../services/shared_preferences_service.dart';
 import 'config.dart';
 import 'customWidgets.dart';
 
+typedef UpdateCallback = void Function();
+
 class SettingsView extends   ConsumerStatefulWidget {
-  SettingsView({super.key, required this.api});
+  SettingsView({super.key, required this.api, this.update});
 
   final OctoCrabApi api;
+  final UpdateCallback? update;
 
 
   @override
@@ -37,6 +40,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   @override
   void dispose() {
     _disposeTextControllers();
+    if(widget.update!=null) widget.update!();
     super.dispose();
   }
 
