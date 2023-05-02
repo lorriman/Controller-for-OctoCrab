@@ -216,9 +216,9 @@ class OctoCrabApi {
         log.fine('$callNumberStr: _client.get initiated : $url...');
         response = await _client
             .get(url, headers: {'Accept': 'application/json; charset=UTF-8'});
-      } on ClientException catch (e, stacktrace) {
-        log.shout(
-            '$callNumberStr: OctoCrabApi._call exception: $e'); //we don't need a stack trace; this is an 'expected' exception
+      } catch (e, stacktrace) {
+        log.fine(
+            '$callNumberStr: OctoCrabApi._call http format error : $e'); //we don't need a stack trace; this is an 'expected' exception
         return ApiCallResult(false, errorCode: 0, errorString: e.toString());
       }
 
