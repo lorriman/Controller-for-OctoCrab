@@ -9,6 +9,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:simple_octocrab/app/settings.dart';
 
 import 'package:simple_octocrab/services/api.dart';
 
@@ -315,6 +316,7 @@ shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)
                     ),
                   ),
               Divider(),
+                  SettingsView(api: _api),
 
             ]),
           )),

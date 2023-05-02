@@ -86,7 +86,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView( children: [
+    return ListView( shrinkWrap : true, children: [
       for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
             (){
 
