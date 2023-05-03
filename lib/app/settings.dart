@@ -10,11 +10,12 @@ import 'customWidgets.dart';
 typedef SimpleEvent = void Function();
 
 class SettingsView extends   ConsumerStatefulWidget {
-  SettingsView({super.key, required this.api, this.update, this.onShutdown});
+  SettingsView({super.key, required this.api, this.update, this.onShutdown, this.title});
 
   final OctoCrabApi api;
   final SimpleEvent? update;
   final SimpleEvent? onShutdown;
+  final Widget? title;
 
 
   @override
@@ -92,7 +93,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   @override
   Widget build(BuildContext context) {
     return ListView( shrinkWrap : true, children: [
-
+      if (widget.title!=null)
+        widget.title!
+      else
+        ListTile(title: Text('Configuration',textScaleFactor: 1.4, style: TextStyle(fontWeight: FontWeight.bold)  ,),
+         trailing: Icon(Icons.settings_outlined),
+        ),
+      Divider(),
       Row(
         children: [
           Container(  width : 80,
