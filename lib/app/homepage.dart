@@ -8,7 +8,6 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:simple_octocrab/app/settings.dart';
 
 import 'package:simple_octocrab/services/api.dart';
@@ -23,6 +22,7 @@ import 'config.dart';
 import 'package:simple_octocrab/services/loggingInst.dart';
 
 import 'customWidgets.dart';
+import 'homepageAux.dart';
 
 enum ViewEnum { main, settings, log }
 
@@ -54,6 +54,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    print('homepage initState');
     _initLogger();
     _loadConfig(_configItems);
     _initBrightness(ref);
@@ -122,31 +123,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   @override
   void dispose() {
-    _disposeTextControllers();
+    print('homepage dispose');
     _api.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  _disposeTextControllers() {}
-
-  _snackBar(context, msg, {bool error = false}) {
-    final snackBar = SnackBar(
-        content: Row(children: [
-      if (error)
-        Icon(
-          Icons.error_outline,
-          color: Colors.red,
-          size: 50,
-        ),
-      if (error) SizedBox(width: 40),
-      Text(
-        msg,
-        textScaleFactor: 1.4,
-      )
-    ]));
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   _setStatus(String status) {
@@ -155,15 +135,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-  void _showAboutDialog(BuildContext context) async {
-    final info = await PackageInfo.fromPlatform();
-    showAboutDialog(
-      context: context,
-      applicationName: 'Controller for Octocrab',
-      applicationVersion: 'v. ${info.version.toString()} +${info.buildNumber}',
-      applicationIcon: Icon(Icons.info_outline),
-    );
-  }
 
   //determines if the user has configured one of the c1-c10 customisable buttons
   //Not a getter as the compute is relatively expensive
@@ -185,42 +156,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return _configItems[enumItem]!.value != '';
   }
 
-  Future<bool?> _shutdownDialogBuilder(BuildContext context) {
-    return showDialog<bool?>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          icon: Icon(size: 70, Icons.power_settings_new, color: Colors.red),
-          //title: const Text('Shutdown'),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(30))),
-          content: const Text(
-              'Are you sure you wish to shutdown the remote device?',
-              textScaleFactor: 1.3),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Yes', textScaleFactor: 2),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Cancel ', textScaleFactor: 2),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,9 +170,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 FlutterClipboard.copy(logLines.fold<String>(
                         '', (prev, e) => '$prev\n${idx++} ${e.line}'))
                     .then((value) =>
-                        _snackBar(context, 'Log copied to clipboard'))
+                        snackBar(context, 'Log copied to clipboard'))
                     .catchError(
-                        (err) => _snackBar(context, 'Copy failed: $err'));
+                        (err) => snackBar(context, 'Copy failed: $err'));
               }),
       appBar: NeumorphicAppBar(
         automaticallyImplyLeading: true,
@@ -261,7 +196,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ),
               InkWell(
                 child: OctoText('controller', 25),
-                onDoubleTap: () => _showAboutDialog(context),
+                onDoubleTap: () => aboutDialog(context),
               ),
             ],
           ),
@@ -323,7 +258,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   ),
                 ),
                 Divider(),
-                Center(child: OutlinedButton(child: Text('about',textScaleFactor: 1.3), onPressed: ()=>_showAboutDialog(context),style: OutlinedButton.styleFrom(padding: EdgeInsets.all(16)))),
+                Center(child: OutlinedButton(child: Text('about',textScaleFactor: 1.3), onPressed: ()=>aboutDialog(context),style: OutlinedButton.styleFrom(padding: EdgeInsets.all(16)))),
                 Divider(),
 
               ],
@@ -580,17 +515,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   },
                   onShutdown: () async {
                     final shouldShutdown =
-                        await _shutdownDialogBuilder(context) ?? false;
+                        await shutdownDialogBuilder(context) ?? false;
 
                     if (shouldShutdown) {
                       _setStatus('sending shut down signal...');
                       final result = await _api.shutdown();
                       if (result.success) {
                         _setStatus('');
-                        _snackBar(context, 'shutdown signal sent');
+                        snackBar(context, 'shutdown signal sent');
                       } else {
                         _setStatus('shutdown error: ${result.errorString}');
-                        _snackBar(context, 'shutdown signal failed',
+                        snackBar(context, 'shutdown signal failed',
                             error: true);
                       }
                     }
