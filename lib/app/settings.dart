@@ -7,16 +7,18 @@ import 'package:simple_octocrab/services/api.dart';
 import '../services/shared_preferences_service.dart';
 import 'config.dart';
 import 'customWidgets.dart';
+import 'homepageAux.dart';
 
 typedef SimpleEvent = void Function();
 
 class SettingsView extends   ConsumerStatefulWidget {
-  SettingsView({super.key, required this.api, this.update, this.onShutdown, this.title});
+  SettingsView({super.key, required this.api, this.update, this.onShutdown, this.title, required this.configItems});
 
   final OctoCrabApi api;
   final SimpleEvent? update;
   final SimpleEvent? onShutdown;
   final Widget? title;
+  final Map<ConfigEnum, ConfigItem> configItems;
 
 
   @override
@@ -28,24 +30,25 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
 
   final Map<ConfigEnum, TextEditingController> _textControllers = {};
-  final Map<ConfigEnum, ConfigItem> _configItems = {};
+//  final Map<ConfigEnum, ConfigItem> _configItems = {};
   final _scrollController=ScrollController();
 
   @override
   void initState() {
     super.initState();
     //_initLogger();
-    _loadConfig(_configItems);
-    _initTextControllers(_configItems, _textControllers);
+//    _loadConfig(_configItems);
+    _initTextControllers(widget.configItems, _textControllers);
 
 
   }
 
   @override
   void dispose() {
+    print('settings dispose');
     _disposeTextControllers();
     _scrollController.dispose();
-    if(widget.update!=null) widget.update!();
+    //if(widget.update!=null) widget.update!();
     super.dispose();
   }
 
@@ -56,32 +59,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
 
 
-  void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
-    configItems.clear();
-
-    final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
-
-    for (final enumItem in ConfigEnum.values) {
-      final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
-          enumItem.example;
-      final item = ConfigItem(enumItem, value);
-      configItems[enumItem] = item;
-    }
-  }
-
-  _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
-    widget.api.init(
-      address: configItems[ConfigEnum.server]!.value,
-      shutdown : configItems[ConfigEnum.shutdown]!.value,
-      password: configItems[ConfigEnum.password]!.value,
-      login_url: configItems[ConfigEnum.login]!.value,
-      on_url: configItems[ConfigEnum.switchOn]!.value,
-      off_url: configItems[ConfigEnum.switchOff]!.value,
-      brightness_url: configItems[ConfigEnum.brightness]!.value,
-      next_url: configItems[ConfigEnum.next]!.value,
-      prev_url: configItems[ConfigEnum.prev]!.value,
-    );
-  }
 
 
   _initTextControllers(configItems, textControllers) {
@@ -121,7 +98,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ],
         ),
         Divider(),
-        for (final item in _configItems.values.where((e)=>e.itemEnum.enabled))
+        for (final item in widget.configItems.values.where((e)=>e.itemEnum.enabled))
               (){
 
             final sharedPreferencesService =
@@ -163,9 +140,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   }
                   sharedPreferencesService.sharedPreferences
                       .setString(item.itemEnum.key, str);
-                  _configItems[item.itemEnum] =
+                  widget.configItems[item.itemEnum] =
                       ConfigItem(item.itemEnum, str);
-                  _configureApi(_configItems);
+                  configureApi(widget.api,widget.configItems);
                 });
               },
             ); }(),

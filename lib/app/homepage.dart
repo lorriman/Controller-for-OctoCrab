@@ -56,9 +56,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
     print('homepage initState');
     _initLogger();
-    _loadConfig(_configItems);
+    loadConfig(ref,_configItems);
     _initBrightness(ref);
-    _configureApi(_configItems);
+    configureApi(_api,_configItems);
   }
 
   _initBrightness(ref) {
@@ -68,6 +68,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   _initLogger() {
     Logger.root.onRecord.listen((record) {
+      if(mounted)
       setState(() {
         _scrollLogDown();
       }); //updates the log view if visible
@@ -93,8 +94,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       _scrollController.jumpTo(0);
     });
   }
-
-  void _loadConfig(Map<ConfigEnum, ConfigItem> configItems) {
+/*
+  void _loadConfig( Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
 
     final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
@@ -120,7 +121,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       prev_url: configItems[ConfigEnum.prev]!.value,
     );
   }
-
+*/
   @override
   void dispose() {
     print('homepage dispose');
@@ -509,8 +510,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 )
               : SettingsView(
                   api: _api,
+                  configItems: _configItems,
                   update: () {
-                    _loadConfig(_configItems);
+                    loadConfig(ref, _configItems);
                     //setState(() {});
                   },
                   onShutdown: () async {

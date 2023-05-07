@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../services/shared_preferences_service.dart';
+import 'config.dart';
+
 
 void aboutDialog(BuildContext context) async {
   final info = await PackageInfo.fromPlatform();
@@ -75,3 +78,31 @@ Future<bool?> shutdownDialogBuilder(BuildContext context) {
     },
   );
 }
+
+void loadConfig(ref, Map<ConfigEnum, ConfigItem> configItems) {
+  configItems.clear();
+
+  final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
+
+  for (final enumItem in ConfigEnum.values) {
+    final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
+        enumItem.example;
+    final item = ConfigItem(enumItem, value);
+    configItems[enumItem] = item;
+  }
+}
+
+configureApi(api, Map<ConfigEnum, ConfigItem> configItems) {
+  api.init(
+    address: configItems[ConfigEnum.server]!.value,
+    shutdown: configItems[ConfigEnum.shutdown]!.value,
+    password: configItems[ConfigEnum.password]!.value,
+    login_url: configItems[ConfigEnum.login]!.value,
+    on_url: configItems[ConfigEnum.switchOn]!.value,
+    off_url: configItems[ConfigEnum.switchOff]!.value,
+    brightness_url: configItems[ConfigEnum.brightness]!.value,
+    next_url: configItems[ConfigEnum.next]!.value,
+    prev_url: configItems[ConfigEnum.prev]!.value,
+  );
+}
+
