@@ -17,6 +17,8 @@ In the project's root folder at the command line do :  fvm use 3.7.12
 
 Then configure your editor : https://fvm.app/docs/getting_started/configuration
 
+(you should add .fvm/flutter_sdk to your .gitignore)
+
 
 
 ## todo
