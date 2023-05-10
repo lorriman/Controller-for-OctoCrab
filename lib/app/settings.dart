@@ -77,8 +77,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         if (widget.title!=null)
           widget.title!
         else
-          ListTile(title: Text('Configuration',textScaleFactor: 1.4, style: TextStyle(fontWeight: FontWeight.bold)  ,),
-           trailing: Icon(Icons.settings_outlined),
+          ListTile(title: Row(
+            children: [
+              Text('Configuration',textScaleFactor: 1.4, style: TextStyle(fontWeight: FontWeight.bold)  ,),
+             Icon(Icons.settings_outlined)
+            ],
+          ),
+
           ),
         Divider(),
         Row(
