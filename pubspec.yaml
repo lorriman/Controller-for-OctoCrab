@@ -16,10 +16,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.5.1+11
+version: 1.5.2+12
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+#  sdk: '>=2.19.6 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,19 +35,18 @@ dependencies:
     git:
       url: https://github.com/google/flutter-desktop-embedding
       path: plugins/window_size
-  flutter_riverpod: ^2.3.2
-  shared_preferences: ^2.0.20
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  flutter_riverpod: ^2.3.6 # ^2.3.2
+  shared_preferences: ^2.1.1 # ^2.0.20
   cupertino_icons: ^1.0.5
   font_awesome_flutter: ^10.4.0
-  flutter_neumorphic: ^3.2.0
-  http: ^0.13.5
+  flutter_neumorphic: # ^3.2.0 #fork to update for Flutter 3.10.0 due to deprecations
+    git:
+      url: https://github.com/lorriman/Flutter-Neumorphic_Flutter_3.10
+#    path: Flutter-Neumorphic_Flutter_3.10  #my own local copy adjusted using dart -fix
+  http: ^0.13.6
   logging: ^1.1.1
   clipboard: ^0.1.3
-  package_info_plus: ^1.4.3+1 #do not change
+  package_info_plus: 3.1.2 #^1.4.3+1 version 4.0.0 bumps min android to api 19
 
 
 dev_dependencies:
@@ -113,4 +113,4 @@ flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/icon/icon.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
+  min_sdk_android: 16 # android min sdk min:16, default 21
