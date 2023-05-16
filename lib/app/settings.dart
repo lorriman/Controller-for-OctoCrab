@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,102 @@ import 'customWidgets.dart';
 import 'homepageAux.dart';
 
 typedef SimpleEvent = void Function();
+
+class SettingsPage extends ConsumerStatefulWidget {
+  SettingsPage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  ConsumerState<SettingsPage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends ConsumerState<SettingsPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  final OctoCrabApi _api = OctoCrabApi();
+  final Map<ConfigEnum, ConfigItem> _configItems = {};
+
+
+  //some parameters are redundant but indicate method behaviour
+  @override
+  void initState() {
+    super.initState();
+    print('settingspage initState');
+    loadConfig(ref, _configItems);
+    configureApi(_api, _configItems);
+  }
+
+
+
+  @override
+  void dispose() {
+    print('settingsPage dispose');
+    _api.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  //determines if the user has configured one of the c1-c10 customisable buttons
+  //Not a getter as the compute is relatively expensive
+  bool _hasConfiguredCustomItems() {
+    int c = 0;
+    _configItems.forEach((key, value) {
+      if (configCustomSet.contains(key)) value.value != '' ? c++ : null;
+    });
+    return c > 0;
+  }
+
+  //determines if the custom item c1-c10 has been configured
+  bool _isConfiguredCustomItemByIndex(int idx) {
+    final enumItem = configCustomSet.elementAt(idx);
+    return _isConfiguredCustomItem(enumItem);
+  }
+
+  bool _isConfiguredCustomItem(ConfigEnum enumItem) {
+    return _configItems[enumItem]!.value != '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+           appBar: NeumorphicAppBar(
+      //  automaticallyImplyLeading: true,
+        title: FittedBox(
+          child: Text('Settings'),
+        ),
+
+      ),
+
+      body: //todo: refactor to _showLog
+      Container(
+        color: Color(0x11111111),
+        child:
+
+
+           SettingsView(
+          api: _api,
+          configItems: _configItems,
+          update: () {
+            loadConfig(ref, _configItems);
+            //setState(() {});
+          },
+          onShutdown: () async {
+            final shouldShutdown =
+                await shutdownDialogBuilder(context) ?? false;
+            if (shouldShutdown) {
+              final result = await _api.shutdown();
+              if (result.success) {
+                snackBar(context, 'shutdown signal sent');
+              } else {
+                snackBar(context, 'shutdown signal failed',
+                    error: true);
+              }
+            }
+          })),
+    );
+  }
+}
 
 class SettingsView extends   ConsumerStatefulWidget {
   SettingsView({super.key, required this.api, this.update, this.onShutdown, this.title, required this.configItems});
