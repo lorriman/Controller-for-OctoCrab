@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_octocrab/services/api.dart';
 
 import '../services/shared_preferences_service.dart';
+import '../services/utils.dart';
 import 'config.dart';
 import 'customWidgets.dart';
 import 'homepageAux.dart';
@@ -27,7 +28,6 @@ class _MyHomePageState extends ConsumerState<SettingsPage> {
   final OctoCrabApi _api = OctoCrabApi();
   final Map<ConfigEnum, ConfigItem> _configItems = {};
 
-
   //some parameters are redundant but indicate method behaviour
   @override
   void initState() {
@@ -36,8 +36,6 @@ class _MyHomePageState extends ConsumerState<SettingsPage> {
     loadConfig(ref, _configItems);
     configureApi(_api, _configItems);
   }
-
-
 
   @override
   void dispose() {
@@ -70,74 +68,75 @@ class _MyHomePageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-           appBar: NeumorphicAppBar(
-      //  automaticallyImplyLeading: true,
+      appBar: NeumorphicAppBar(
+        //  automaticallyImplyLeading: true,
         title: FittedBox(
-          child: Text('Settings'),
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined),
+              SizedBox(width: 10),
+              Text(
+                'Configuration',
+                textScaleFactor: 1.4,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
-
       ),
-
       body: //todo: refactor to _showLog
-      Container(
-        color: Color(0x11111111),
-        child:
-
-
-           SettingsView(
-          api: _api,
-          configItems: _configItems,
-          update: () {
-            loadConfig(ref, _configItems);
-            //setState(() {});
-          },
-          onShutdown: () async {
-            final shouldShutdown =
-                await shutdownDialogBuilder(context) ?? false;
-            if (shouldShutdown) {
-              final result = await _api.shutdown();
-              if (result.success) {
-                snackBar(context, 'shutdown signal sent');
-              } else {
-                snackBar(context, 'shutdown signal failed',
-                    error: true);
-              }
-            }
-          })),
+          Container(
+              color: Color(0x11111111),
+              child: SettingsView(
+                  api: _api,
+                  configItems: _configItems,
+                  update: () {
+                    loadConfig(ref, _configItems);
+                    //setState(() {});
+                  },
+                  onShutdown: () async {
+                    final shouldShutdown =
+                        await shutdownDialogBuilder(context) ?? false;
+                    if (shouldShutdown) {
+                      final result = await _api.shutdown();
+                      if (result.success) {
+                        snackBar(context, 'shutdown signal sent');
+                      } else {
+                        snackBar(context, 'shutdown signal failed',
+                            error: true);
+                      }
+                    }
+                  })),
     );
   }
 }
 
-class SettingsView extends   ConsumerStatefulWidget {
-  SettingsView({super.key, required this.api, this.update, this.onShutdown, this.title, required this.configItems});
+class SettingsView extends ConsumerStatefulWidget {
+  SettingsView(
+      {super.key,
+      required this.api,
+      this.update,
+      this.onShutdown,
+      required this.configItems});
 
   final OctoCrabApi api;
   final SimpleEvent? update;
   final SimpleEvent? onShutdown;
-  final Widget? title;
   final Map<ConfigEnum, ConfigItem> configItems;
 
-
   @override
-ConsumerState<SettingsView> createState() => _SettingsViewState();
-
+  ConsumerState<SettingsView> createState() => _SettingsViewState();
 }
 
 class _SettingsViewState extends ConsumerState<SettingsView> {
-
-
   final Map<ConfigEnum, TextEditingController> _textControllers = {};
-//  final Map<ConfigEnum, ConfigItem> _configItems = {};
-  final _scrollController=ScrollController();
+
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    //_initLogger();
-//    _loadConfig(_configItems);
     _initTextControllers(widget.configItems, _textControllers);
-
-
   }
 
   @override
@@ -154,10 +153,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     _textControllers.clear();
   }
 
-
-
-
-
   _initTextControllers(configItems, textControllers) {
     for (final enumItem in ConfigEnum.values) {
       final value = configItems[enumItem].value;
@@ -166,61 +161,75 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return CupertinoScrollbar(thumbVisibility: true, controller: _scrollController,thickness: 10,
-      child: ListView( shrinkWrap : true,controller: _scrollController,children: [
-        if (widget.title!=null)
-          widget.title!
-        else
-          ListTile(title: Row(
-            children: [
-              Text('Configuration',textScaleFactor: 1.4, style: TextStyle(fontWeight: FontWeight.bold)  ,),
-             Icon(Icons.settings_outlined)
-            ],
-          ),
+    final boldStyle = TextStyle(fontWeight: FontWeight.bold);
 
-          ),
-        Divider(),
-        Row(
-          children: [
-            Container(  width : 80,
-              child: IconButton(
-                style: ButtonStyle(elevation: MaterialStateProperty.all(20.0),
-                    shadowColor: MaterialStateProperty.all(Colors.red)),
-                icon:
-                Icon(Icons.power_settings_new, color: Colors.red.shade300),
-                onPressed: widget.onShutdown,
-                iconSize: 50,
-                tooltip: 'shutdown device',
-              ),
+    final primarySwatch = getMaterialColor(Theme.of(context).primaryColor);
+
+    return CupertinoScrollbar(
+      thumbVisibility: true,
+      controller: _scrollController,
+      thickness: 10,
+      child:
+          ListView(shrinkWrap: true, controller: _scrollController, children: [
+        ListTile(
+            title: Text('commands :', textScaleFactor: 1.2, style: boldStyle)),
+        ListTile(
+            title: Center(
+          child: OutlinedButton(
+            onPressed: widget.onShutdown,
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.all(20),
+              shape: StadiumBorder(),
+              side: BorderSide(
+                  width: 1, color: primarySwatch[300] ?? Colors.grey),
             ),
-            Text('shutdown remote device',textScaleFactor: 1.2, style: TextStyle(color: Colors.red)),
-          ],
-        ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80,
+                  child: Icon(Icons.power_settings_new,
+                      color: Colors.red.shade300),
+                ),
+                Text('shutdown remote device',
+                    textScaleFactor: 1.5, style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        )),
         Divider(),
-        for (final item in widget.configItems.values.where((e)=>e.itemEnum.enabled))
-              (){
-
+        ListTile(
+            title: Text(
+          'buttons:',
+          textScaleFactor: 1.2,
+          style: boldStyle,
+        )),
+        for (final item
+            in widget.configItems.values.where((e) => e.itemEnum.enabled))
+          () {
             final sharedPreferencesService =
-            ref.read(sharedPreferencesServiceProvider);
+                ref.read(sharedPreferencesServiceProvider);
 
-
-            if (item.itemEnum.checkbox){
-              final value=sharedPreferencesService.sharedPreferences
-                  .getString(item.itemEnum.key) ?? 'false';
+            if (item.itemEnum.checkbox) {
+              final value = sharedPreferencesService.sharedPreferences
+                      .getString(item.itemEnum.key) ??
+                  'false';
               return Row(
                 children: [
-                  Checkbox(value:value=='true',onChanged: true ? null : (value){
-
-                    sharedPreferencesService.sharedPreferences
-                        .setString(item.itemEnum.key, value! ? 'true' : 'false' );
-                  }
-                    , ),
-                  Text(item.itemEnum.label+' (tba)',style: TextStyle(color: Colors.grey)),
+                  Checkbox(
+                    value: value == 'true',
+                    onChanged: true
+                        ? null
+                        : (value) {
+                            sharedPreferencesService.sharedPreferences
+                                .setString(item.itemEnum.key,
+                                    value! ? 'true' : 'false');
+                          },
+                  ),
+                  Text(item.itemEnum.label + ' (tba)',
+                      style: TextStyle(color: Colors.grey)),
                 ],
-
               );
             }
 
@@ -234,7 +243,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 //brute-forcing the update because the Drawer doesn't have events like onUnShow
                 // which means the c1-10 custom functions don't appear/disappear as they should
                 //todo: optimise the setState
-                setState((){
+                setState(() {
                   String str = value.trim();
                   if (str.length > 2040) {
                     /* max url length =2048, we subtract a few bytes */
@@ -244,15 +253,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       .setString(item.itemEnum.key, str);
                   widget.configItems[item.itemEnum] =
                       ConfigItem(item.itemEnum, str);
-                  configureApi(widget.api,widget.configItems);
+                  configureApi(widget.api, widget.configItems);
                 });
               },
-            ); }(),
-
+            );
+          }(),
       ]),
     );
   }
-
-
-  
 }
