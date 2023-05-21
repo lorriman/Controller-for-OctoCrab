@@ -10,6 +10,8 @@ import 'package:logging/logging.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_octocrab/services/loggingInst.dart';
+import 'package:simple_octocrab/services/utils.dart';
+//import 'package:simple_octocrab/services/utils.dart';
 import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
@@ -18,6 +20,7 @@ import 'app/appproviders.dart';
 import 'app/homepage.dart';
 
 void main() async {
+  print('main started');
   WidgetsFlutterBinding.ensureInitialized();
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
@@ -48,6 +51,7 @@ void main() async {
             (stack != null ? 'STARTTRACE:\n$stack ENDTRACE' : '')));
     return false;
   };
+  print('main error handlers initialised');
 
   if(!kIsWeb) {
     //helps test as phone dimensions when debugging.
@@ -65,8 +69,9 @@ void main() async {
       //setWindowFrame(Rect frame)
     }
   }
+  print('main windows size set');
   final sharedPreferences = await SharedPreferences.getInstance();
-
+  print('main shared preferences instance fetched');
   /*
   //this is removed, but layout issues might require its return so left here
   SystemChrome.setPreferredOrientations(
@@ -82,6 +87,7 @@ void main() async {
     ], child: MyApp()));
   //});
 //  runApp(const MyApp());
+  print('main exiting main');
 }
 
 class MyApp extends ConsumerWidget {
@@ -91,6 +97,21 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     //return MaterialApp(
     final darkMode = ref.watch(darkModeProvider);
+    final baseColor = Color(0xFFAAD7F1);
+
+    Color colorBrighter(Color color, double brightness ) {
+      if(brightness==0.0)
+        return color;
+       return Color.lerp(color, Colors.white, brightness) ?? color;
+    }
+    Color colorDarker(Color color, double darkness ) {
+      if(darkness==0.0)
+        return color;
+      return Color.lerp(color, Colors.black, darkness) ?? color;
+    }
+
+
+    //final primarySwatch=getMaterialColor(baseColor);
 
     return NeumorphicApp(
       debugShowCheckedModeBanner: true,
@@ -98,18 +119,23 @@ class MyApp extends ConsumerWidget {
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
           baseColor: Color(0xFFAAD7F1),//0xFFFFFFFF
+
           lightSource: LightSource.topLeft,
           depth: 7,
+          iconTheme: IconThemeData(color: colorDarker(baseColor,0.5)) ,
+          //textTheme: TextTheme(  :  TextStyle(color: Colors.black)),
+
           buttonStyle: NeumorphicStyle(
               shape: NeumorphicShape.concave,
               boxShape: NeumorphicBoxShape.roundRect(
                 BorderRadius.circular(20),
               ))),
       darkTheme: NeumorphicThemeData(
-        baseColor: Color(0xFF3E3E3E),
-        shadowDarkColor: Color(0xFFFFFFFF),
-        shadowLightColor: Color(0xBBBBBBBB),
+        baseColor: colorDarker(baseColor,0.65),//Color(0xFF3E3E3E),
+        shadowDarkColor: colorBrighter(baseColor,0.0),//Color(0xFFFFFFFF),
+        shadowLightColor: colorDarker(baseColor,0.0), // Color(0xBBBBBBBB),
         lightSource: LightSource.bottomRight,
+        iconTheme: IconThemeData(color: colorBrighter(baseColor,0.0)) ,
         intensity: .9,
         buttonStyle: NeumorphicStyle(
             shape: NeumorphicShape.convex,
@@ -123,6 +149,14 @@ class MyApp extends ConsumerWidget {
         primarySwatch: Colors.blue,
       ),*/
       home: MyHomePage(title: "Robert's Controller"),
+
+      onUnknownRoute: (RouteSettings settings) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (BuildContext context) =>
+              MyHomePage(title: "Robert's Controller"),
+        );
+      },
     );
   }
 }

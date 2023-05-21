@@ -17,6 +17,7 @@ import 'package:simple_octocrab/services/shared_preferences_service.dart';
 import 'package:clipboard/clipboard.dart';
 
 import 'appproviders.dart';
+import 'colorSettings.dart';
 import 'config.dart';
 
 import 'package:simple_octocrab/services/loggingInst.dart';
@@ -56,9 +57,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
     print('homepage initState');
     _initLogger();
-    loadConfig(ref,_configItems);
+    loadConfig(ref, _configItems);
     _initBrightness(ref);
-    configureApi(_api,_configItems);
+    configureApi(_api, _configItems);
   }
 
   _initBrightness(ref) {
@@ -68,10 +69,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   _initLogger() {
     Logger.root.onRecord.listen((record) {
-      if(mounted)
-      setState(() {
-        _scrollLogDown();
-      }); //updates the log view if visible
+      if (mounted)
+        setState(() {
+          _scrollLogDown();
+        }); //updates the log view if visible
     });
   }
 
@@ -94,6 +95,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       _scrollController.jumpTo(0);
     });
   }
+
 /*
   void _loadConfig( Map<ConfigEnum, ConfigItem> configItems) {
     configItems.clear();
@@ -136,7 +138,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-
   //determines if the user has configured one of the c1-c10 customisable buttons
   //Not a getter as the compute is relatively expensive
   bool _hasConfiguredCustomItems() {
@@ -157,6 +158,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return _configItems[enumItem]!.value != '';
   }
 
+  setColor(context, Color color){
+    final neumorphic=NeumorphicTheme.of(context);
+
+    final oldTheme=neumorphic!.value.theme;
+    setState((){
+
+      neumorphic.updateCurrentTheme(oldTheme.copyWith(baseColor: color,));
+
+    });
+      }
 
   @override
   Widget build(BuildContext context) {
@@ -170,24 +181,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 int idx = 0;
                 FlutterClipboard.copy(logLines.fold<String>(
                         '', (prev, e) => '$prev\n${idx++} ${e.line}'))
-                    .then((value) =>
-                        snackBar(context, 'Log copied to clipboard'))
+                    .then(
+                        (value) => snackBar(context, 'Log copied to clipboard'))
                     .catchError(
                         (err) => snackBar(context, 'Copy failed: $err'));
               }),
       appBar: NeumorphicAppBar(
-        automaticallyImplyLeading: true,
-        leading: Navigator.of(context).canPop()
-            ? InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.black54,
-                ),
-              )
-            : null,
+//        automaticallyImplyLeading: true,
+        /* leading: switch (Navigator.of(context).canPop()) {
+          (true) => InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.black54,
+              ),
+            ),
+          (false) => null,
+        },*/
         title: FittedBox(
           child: Row(
             children: [
@@ -209,8 +221,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => MyHomePage(
-                            title: 'Settings', view: ViewEnum.settings)),
+                        builder: (context) => SettingsPage(
+                            title: 'Settings')),
                   );
                 }),
         ],
@@ -240,13 +252,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                   child: SizedBox(
                                     width: 100,
                                     child: OctoSwitch(
-                                        value: ref.read(darkModeProvider), //flicker?
+                                        value: ref
+                                            .read(darkModeProvider), //flicker?
                                         onChanged: (value) {
-                                          ref.read(darkModeProvider.notifier).state =
-                                              value;
-                                          final sharedPreferencesService = ref
-                                              .read(sharedPreferencesServiceProvider);
-                                          sharedPreferencesService.sharedPreferences
+                                          ref
+                                              .read(darkModeProvider.notifier)
+                                              .state = value;
+                                          final sharedPreferencesService = ref.read(
+                                              sharedPreferencesServiceProvider);
+                                          sharedPreferencesService
+                                              .sharedPreferences
                                               .setBool('darkMode', value);
                                         }),
                                   ),
@@ -258,10 +273,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         ]),
                   ),
                 ),
+                Divider(),/*
+                ElevatedButton(child: Text('color'),onPressed: (){
+                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));
+  }),
+                  //setColor(context,Color(0xFFFFFFFF));}),
+                Divider(),  */
+                Center(
+                    child: OutlinedButton(
+                        child: Text('about', textScaleFactor: 1.3),
+                        onPressed: () => aboutDialog(context),
+                        style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.all(16)))),
                 Divider(),
-                Center(child: OutlinedButton(child: Text('about',textScaleFactor: 1.3), onPressed: ()=>aboutDialog(context),style: OutlinedButton.styleFrom(padding: EdgeInsets.all(16)))),
-                Divider(),
-
               ],
             )),
       ),
@@ -310,8 +334,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 ],
               ),
             )
-          : widget.view == ViewEnum.main
-              ? CustomScrollView(
+          :  CustomScrollView(
                   slivers: [
                     SliverFillRemaining(
                       hasScrollBody: true,
@@ -508,30 +531,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     )
                   ],
                 )
-              : SettingsView(
-                  api: _api,
-                  configItems: _configItems,
-                  update: () {
-                    loadConfig(ref, _configItems);
-                    //setState(() {});
-                  },
-                  onShutdown: () async {
-                    final shouldShutdown =
-                        await shutdownDialogBuilder(context) ?? false;
-
-                    if (shouldShutdown) {
-                      _setStatus('sending shut down signal...');
-                      final result = await _api.shutdown();
-                      if (result.success) {
-                        _setStatus('');
-                        snackBar(context, 'shutdown signal sent');
-                      } else {
-                        _setStatus('shutdown error: ${result.errorString}');
-                        snackBar(context, 'shutdown signal failed',
-                            error: true);
-                      }
-                    }
-                  }),
+              ,
     );
   }
 }

@@ -147,9 +147,8 @@ class InputBox extends StatelessWidget {
                 obscureText: password,
                 onChanged: onChanged,
                 controller: controller,
-                decoration: InputDecoration(
-                  contentPadding:
-                  EdgeInsets.only(left: 8, right: 8), // Removes padding
+                decoration: InputDecoration(//helperStyle: TextStyle(fontSize: 8),
+                  floatingLabelStyle: TextStyle(fontSize: 25),
                   labelText: label,
                   border: OutlineInputBorder(
                     borderSide: BorderSide(width: 1),
