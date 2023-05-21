@@ -165,7 +165,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   Widget build(BuildContext context) {
     final boldStyle = TextStyle(fontWeight: FontWeight.bold);
 
-    final primarySwatch = getMaterialColor(Theme.of(context).primaryColor);
+    final primarySwatch = getMaterialColor(Theme.of(context).primaryColor);//todo: refactor - performance
 
     return CupertinoScrollbar(
       thumbVisibility: true,

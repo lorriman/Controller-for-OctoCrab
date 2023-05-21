@@ -17,6 +17,7 @@ import 'package:simple_octocrab/services/shared_preferences_service.dart';
 import 'package:clipboard/clipboard.dart';
 
 import 'appproviders.dart';
+import 'colorSettings.dart';
 import 'config.dart';
 
 import 'package:simple_octocrab/services/loggingInst.dart';
@@ -157,6 +158,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return _configItems[enumItem]!.value != '';
   }
 
+  setColor(context, Color color){
+    final neumorphic=NeumorphicTheme.of(context);
+
+    final oldTheme=neumorphic!.value.theme;
+    setState((){
+
+      neumorphic.updateCurrentTheme(oldTheme.copyWith(baseColor: color,));
+
+    });
+      }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -261,7 +273,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         ]),
                   ),
                 ),
-                Divider(),
+                Divider(),/*
+                ElevatedButton(child: Text('color'),onPressed: (){
+                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));
+  }),
+                  //setColor(context,Color(0xFFFFFFFF));}),
+                Divider(),  */
                 Center(
                     child: OutlinedButton(
                         child: Text('about', textScaleFactor: 1.3),
