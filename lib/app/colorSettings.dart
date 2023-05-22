@@ -32,36 +32,41 @@ class _ColorSettingsViewState extends ConsumerState<ColorSettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    final double sz=20;
-    final int maxCount=50;
-    final int mult=40;
-    return Scaffold(
-      appBar: NeumorphicAppBar(
-        //  automaticallyImplyLeading: true,
-        title: FittedBox(
-          child: Row(
-            children: [
-              Icon(Icons.settings_outlined),
-              SizedBox(width: 10),
-              Text(
-                'Colors',
-                textScaleFactor: 1.4,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: Wrap(children : [
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  mult*i,  255~/i,  175,  1)),
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  mult*i,  175, 255~/i ,  1)),
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  175, mult*i  , 255~/i ,  1)),
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  255~/i, mult*i  , 175 ,  1)),
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  175,  255~/i ,mult*i,  1)),
-        for(int i=10;i<maxCount;i++) Container(height: sz, width : sz, color: Color.fromRGBO(  255~/i, 175, mult*i  ,  1)),
+    final double sz=120;
+    final start=200;
+    final int maxCount=250;
+    final int incr=20;
+    final shades=[200];
+    
+    return Container(padding : EdgeInsets.all(16),
+      child: Wrap(children : [
+        Container(height: sz, width: sz, color: Color.fromRGBO( 255, 255, 255, 1)),
+        
 
-      ]),
+        for( int x in shades)
+        for(int i=start;i<255;i+=incr)
+          Container(height: sz, width: sz, color: Color.fromRGBO(255, i, x, 1)),
+        for( int x in shades)
+          for(int i=start;i<255;i+=incr)
+            Container(height: sz, width: sz, color: Color.fromRGBO(255, x, i, 1)),
+
+      for( int x in shades)
+        for(int i=start;i<255;i+=incr)
+          Container(height: sz, width: sz, color: Color.fromRGBO(i, 255, x, 1)),
+        for( int x in shades)
+          for(int i=start;i<255;i+=incr)
+            Container(height: sz, width: sz, color: Color.fromRGBO(x, 255, i, 1)),
+
+      for( int x in shades)
+        for(int i=start;i<255;i+=incr)
+          Container(height: sz, width: sz, color: Color.fromRGBO( i, x, 255, 1)),
+      for( int x in shades)
+        for(int i=start;i<255;i+=incr)
+          Container(height: sz, width: sz, color: Color.fromRGBO( x, i, 255, 1)),
+
+        ]),
     );
+
 
   }
 }

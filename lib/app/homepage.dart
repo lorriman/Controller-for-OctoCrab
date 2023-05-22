@@ -273,12 +273,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                         ]),
                   ),
                 ),
-                Divider(),/*
-                ElevatedButton(child: Text('color'),onPressed: (){
-                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));
-  }),
+                Divider(),
+                ElevatedButton(child: Text('color'),onPressed: () {
+                  showModalBottomSheet(context: context,
+
+
+
+                      builder: (context){
+                    return ColorSettingsView(title:'title');
+                  });
+                },),
+//                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
                   //setColor(context,Color(0xFFFFFFFF));}),
-                Divider(),  */
+                Divider(),
                 Center(
                     child: OutlinedButton(
                         child: Text('about', textScaleFactor: 1.3),
