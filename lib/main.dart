@@ -57,11 +57,11 @@ void main() async {
     //helps test as phone dimensions when debugging.
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       if (kDebugMode) {
-        setWindowMaxSize(const Size(450, 900));
-        setWindowMinSize(const Size(384, 400));
+        //setWindowMaxSize(const Size(450, 900));
+        //setWindowMinSize(const Size(384, 400));
       } else {
         //setWindowMaxSize(const Size(384, 700));
-        setWindowMinSize(const Size(384, 400));
+        //setWindowMinSize(const Size(384, 400));
       }
       //setWindowMaxSize(const Size(700, 384));
       //setWindowMinSize(const Size(700, 384));
@@ -97,7 +97,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     //return MaterialApp(
     final darkMode = ref.watch(darkModeProvider);
-    final baseColor = Color(0xFFAAD7F1);
+    final baseColor =  ref.watch(colorProvider);   //Color(0xFFAAD7F1);
 
     Color colorBrighter(Color color, double brightness ) {
       if(brightness==0.0)
@@ -118,7 +118,7 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
-          baseColor: Color(0xFFAAD7F1),//0xFFFFFFFF
+          baseColor: baseColor,//Color(0xFFAAD7F1),//0xFFFFFFFF
 
           lightSource: LightSource.topLeft,
           depth: 7,

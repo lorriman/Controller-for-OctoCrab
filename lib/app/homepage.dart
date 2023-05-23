@@ -228,7 +228,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         ],
       ),
       drawer: SafeArea(
-        child: Drawer(
+        child: Drawer(backgroundColor: NeumorphicTheme.of(context)!.current!.baseColor,
             width: 350,
             child: Column(
               children: [
@@ -246,7 +246,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               children: [
-                                Container(
+                                Container( //color: Colors.red,
                                   alignment: Alignment.centerLeft,
                                   width: 120,
                                   child: SizedBox(
@@ -270,19 +270,40 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               ],
                             ),
                           ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                NeumorphicCheckbox(value: true, onChanged: (value) {}),
+                                SizedBox(width: 20),
+                                OctoText('Neumorphic',20),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ElevatedButton(child: Text('color'),onPressed: () {
+                              showModalBottomSheet(context: context,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(topLeft: Radius.circular(40.0),topRight: Radius.circular(40.0)),
+                                  ),
+                                  isScrollControlled: true,
+
+
+
+                                  builder: (context){
+                                    return ColorSettingsView(title:'title');
+                                  });
+                            },),
+                          ),
                         ]),
                   ),
                 ),
-                Divider(),
-                ElevatedButton(child: Text('color'),onPressed: () {
-                  showModalBottomSheet(context: context,
 
 
 
-                      builder: (context){
-                    return ColorSettingsView(title:'title');
-                  });
-                },),
+
 //                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
                   //setColor(context,Color(0xFFFFFFFF));}),
                 Divider(),
