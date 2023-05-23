@@ -7,10 +7,15 @@ import 'config.dart';
 
 final colorProvider = StateProvider<Color>((ref) {
 
-  return Color(0xFFFFFFFF);
-  final prefService = ref.read(sharedPreferencesServiceProvider);
-   final colorStr=prefService.sharedPreferences.getString('neumorphic') ?? '0xFFFFFF';
+  ref.listenSelf((previous, next) {
+    final prefService = ref.read(sharedPreferencesServiceProvider);
+    prefService.sharedPreferences.setInt('color',next.value);
+  });
 
+  //return Color(0xFFFFFFFF);
+  final prefService = ref.read(sharedPreferencesServiceProvider);
+   final colorInt=prefService.sharedPreferences.getInt('color') ?? 0xFFFFFFFF;
+  return Color(colorInt);
 });
 
 
