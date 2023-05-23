@@ -158,16 +158,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return _configItems[enumItem]!.value != '';
   }
 
-  setColor(context, Color color){
-    final neumorphic=NeumorphicTheme.of(context);
+  setColor(context, Color color) {
+    final neumorphic = NeumorphicTheme.of(context);
 
-    final oldTheme=neumorphic!.value.theme;
-    setState((){
-
-      neumorphic.updateCurrentTheme(oldTheme.copyWith(baseColor: color,));
-
+    final oldTheme = neumorphic!.value.theme;
+    setState(() {
+      neumorphic.updateCurrentTheme(oldTheme.copyWith(
+        baseColor: color,
+      ));
     });
-      }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,14 +221,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => SettingsPage(
-                            title: 'Settings')),
+                        builder: (context) => SettingsPage(title: 'Settings')),
                   );
                 }),
         ],
       ),
       drawer: SafeArea(
-        child: Drawer(backgroundColor: NeumorphicTheme.of(context)!.current!.baseColor,
+        child: Drawer(
+            backgroundColor: NeumorphicTheme.of(context)!.current!.baseColor,
             width: 350,
             child: Column(
               children: [
@@ -246,7 +246,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               children: [
-                                Container( //color: Colors.red,
+                                Container(
+                                  //color: Colors.red,
                                   alignment: Alignment.centerLeft,
                                   width: 120,
                                   child: SizedBox(
@@ -270,7 +271,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               ],
                             ),
                           ),
-                          Padding(
+
+                          /* Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -280,39 +282,40 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                 OctoText('Neumorphic',20),
                               ],
                             ),
-                          ),
+                          ),*/
                           Padding(
                             padding: const EdgeInsets.all(16.0),
-                            child: ElevatedButton(child: Text('color'),onPressed: () {
-                              showModalBottomSheet(context: context,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(topLeft: Radius.circular(40.0),topRight: Radius.circular(40.0)),
-                                  ),
-                                  isScrollControlled: true,
-
-
-
-                                  builder: (context){
-                                    return ColorSettingsView(title:'title');
-                                  });
-                            },),
+                            child: OctoButton(
+                              'color',
+                              rounding: 10,
+                              onPressed: () {
+                                showModalBottomSheet(
+                                    context: context,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(40.0),
+                                          topRight: Radius.circular(40.0)),
+                                    ),
+                                    isScrollControlled: true,
+                                    builder: (context) {
+                                      return ColorSettingsView(title: 'title');
+                                    });
+                              },
+                            ),
                           ),
                         ]),
                   ),
                 ),
 
-
-
-
 //                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
-                  //setColor(context,Color(0xFFFFFFFF));}),
+                //setColor(context,Color(0xFFFFFFFF));}),
                 Divider(),
                 Center(
-                    child: OutlinedButton(
-                        child: Text('about', textScaleFactor: 1.3),
-                        onPressed: () => aboutDialog(context),
-                        style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.all(16)))),
+                  child: OctoButton(
+                    'about', rounding : 10,
+                    onPressed: () => aboutDialog(context),
+                  ),
+                ),
                 Divider(),
               ],
             )),
@@ -362,204 +365,201 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 ],
               ),
             )
-          :  CustomScrollView(
-                  slivers: [
-                    SliverFillRemaining(
-                      hasScrollBody: true,
-                      child: Row(
-                        children: [
-                          Flexible(
-                            flex: 3,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                FittedBox(
-                                  child: OctoButton(
-                                    'on/off',
-                                    key: Key('on/off button'),
-                                    fontSize: 60,
-                                    onPressed: () async {
-                                      ApiCallResult? result;
+          : CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        flex: 3,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            FittedBox(
+                              child: OctoButton(
+                                'on/off',
+                                key: Key('on/off button'),
+                                fontSize: 60,
+                                onPressed: () async {
+                                  ApiCallResult? result;
+                                  _setStatus('');
+                                  if (!_connected) {
+                                    final password =
+                                        _configItems[ConfigEnum.password]!
+                                            .value;
+                                    _setStatus('connecting...');
+                                    result =
+                                        await _api.connect(password: password);
+                                    if (result.success) {
                                       _setStatus('');
-                                      if (!_connected) {
-                                        final password =
-                                            _configItems[ConfigEnum.password]!
-                                                .value;
-                                        _setStatus('connecting...');
-                                        result = await _api.connect(
-                                            password: password);
-                                        if (result.success) {
-                                          _setStatus('');
-                                          setState(() {
-                                            _connected = true;
-                                          });
-                                        } else {
-                                          _setStatus(result.errorString);
-                                        }
-                                      }
-                                      if (_connected) {
-                                        _is_on = !_is_on;
-                                        if (_is_on)
-                                          result = await _api.switchOff();
-                                        else
-                                          result = await _api.switchOn();
-                                        if (!result.success)
-                                          _setStatus(result.errorString);
-                                      }
-                                    },
-                                  ),
-                                ),
-                                if (_status != '')
-                                  Builder(builder: (context) {
-                                    final statusLines = _status.split('\n');
-
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 16.0, right: 16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          FittedBox(
-                                            child: Text(
-                                              statusLines[0].trim(),
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w600),
-                                              maxLines: 4,
-                                              overflow: TextOverflow.ellipsis,
-                                              softWrap: true,
-                                              textScaleFactor: 1.5,
-                                            ),
-                                          ),
-                                          for (int i = 1;
-                                              i < statusLines.length;
-                                              i++)
-                                            Text(
-                                              statusLines[i].trim(),
-                                              maxLines: 5,
-                                              overflow: TextOverflow.ellipsis,
-                                              textScaleFactor: 1.5,
-                                            ),
-                                          if (_status == 'connecting...')
-                                            CircularProgressIndicator(),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                FittedBox(
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        FittedBox(
-                                          child: OctoButton('prev',
-                                              fontSize: 40,
-                                              onPressed: _connected
-                                                  ? () async {
-                                                      _setStatus('');
-                                                      final result =
-                                                          await _api.previous();
-
-                                                      _setStatus(
-                                                          result.errorString);
-                                                    }
-                                                  : null),
-                                        ),
-                                        FittedBox(
-                                          child: OctoButton('next',
-                                              fontSize: 40,
-                                              onPressed: _connected
-                                                  ? () async {
-                                                      _setStatus('');
-                                                      final result =
-                                                          await _api.next();
-                                                      _setStatus(
-                                                          result.errorString);
-                                                    }
-                                                  : null),
-                                        )
-                                      ]),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 12.0, right: 12),
-                                  child: OctoSlider(
-                                      enabled: _connected,
-                                      value: _brightness,
-                                      onChange: (value) {
-                                        _setStatus('');
-                                        setState(() => _brightness = value);
-                                      },
-                                      onChangeEnd: (value) async {
-                                        setState(() {
-                                          ref
-                                              .read(brightnessProvider.notifier)
-                                              .state = value.toInt();
-                                        });
-                                        final sharedPreferencesService = ref.read(
-                                            sharedPreferencesServiceProvider);
-                                        sharedPreferencesService
-                                            .sharedPreferences
-                                            .setInt(
-                                                'brightness', value.toInt());
-                                        final result = await _api.brightness(
-                                            value: value.toInt());
-                                        _setStatus(result.errorString);
-                                      }),
-                                ),
-                              ],
+                                      setState(() {
+                                        _connected = true;
+                                      });
+                                    } else {
+                                      _setStatus(result.errorString);
+                                    }
+                                  }
+                                  if (_connected) {
+                                    _is_on = !_is_on;
+                                    if (_is_on)
+                                      result = await _api.switchOff();
+                                    else
+                                      result = await _api.switchOn();
+                                    if (!result.success)
+                                      _setStatus(result.errorString);
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                          if (_hasConfiguredCustomItems())
-                            Flexible(
-                              flex: 0,
-                              child: FittedBox(
-                                child: Column(
+                            if (_status != '')
+                              Builder(builder: (context) {
+                                final statusLines = _status.split('\n');
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16.0, right: 16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      SizedBox(height: 10),
-                                      for (var i = 0; i < 10; i++)
-                                        OctoButton(
-                                          'c' + (i + 1).toString(),
-                                          margin: 5,
-                                          fontSize: 18,
-                                          onPressed:
-                                              !_isConfiguredCustomItemByIndex(i)
-                                                  ? null
-                                                  : () async {
-                                                      final cLabel = 'c' +
-                                                          (i + 1).toString();
-                                                      final enumItem =
-                                                          configCustomSet
-                                                              .elementAt(i);
-                                                      final url = _configItems[
-                                                              enumItem]!
+                                      FittedBox(
+                                        child: Text(
+                                          statusLines[0].trim(),
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600),
+                                          maxLines: 4,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          textScaleFactor: 1.5,
+                                        ),
+                                      ),
+                                      for (int i = 1;
+                                          i < statusLines.length;
+                                          i++)
+                                        Text(
+                                          statusLines[i].trim(),
+                                          maxLines: 5,
+                                          overflow: TextOverflow.ellipsis,
+                                          textScaleFactor: 1.5,
+                                        ),
+                                      if (_status == 'connecting...')
+                                        CircularProgressIndicator(),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            FittedBox(
+                              child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    FittedBox(
+                                      child: OctoButton('prev',
+                                          fontSize: 40,
+                                          onPressed: _connected
+                                              ? () async {
+                                                  _setStatus('');
+                                                  final result =
+                                                      await _api.previous();
+
+                                                  _setStatus(
+                                                      result.errorString);
+                                                }
+                                              : null),
+                                    ),
+                                    FittedBox(
+                                      child: OctoButton('next',
+                                          fontSize: 40,
+                                          onPressed: _connected
+                                              ? () async {
+                                                  _setStatus('');
+                                                  final result =
+                                                      await _api.next();
+                                                  _setStatus(
+                                                      result.errorString);
+                                                }
+                                              : null),
+                                    )
+                                  ]),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 12.0, right: 12),
+                              child: OctoSlider(
+                                  enabled: _connected,
+                                  value: _brightness,
+                                  onChange: (value) {
+                                    _setStatus('');
+                                    setState(() => _brightness = value);
+                                  },
+                                  onChangeEnd: (value) async {
+                                    setState(() {
+                                      ref
+                                          .read(brightnessProvider.notifier)
+                                          .state = value.toInt();
+                                    });
+                                    final sharedPreferencesService = ref
+                                        .read(sharedPreferencesServiceProvider);
+                                    sharedPreferencesService.sharedPreferences
+                                        .setInt('brightness', value.toInt());
+                                    final result = await _api.brightness(
+                                        value: value.toInt());
+                                    _setStatus(result.errorString);
+                                  }),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_hasConfiguredCustomItems())
+                        Flexible(
+                          flex: 0,
+                          child: FittedBox(
+                            child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  SizedBox(height: 10),
+                                  for (var i = 0; i < 10; i++)
+                                    OctoButton(
+                                      'c' + (i + 1).toString(),
+                                      margin: 5,
+                                      fontSize: 18,
+                                      onPressed:
+                                          !_isConfiguredCustomItemByIndex(i)
+                                              ? null
+                                              : () async {
+                                                  final cLabel =
+                                                      'c' + (i + 1).toString();
+                                                  final enumItem =
+                                                      configCustomSet
+                                                          .elementAt(i);
+                                                  final url =
+                                                      _configItems[enumItem]!
                                                           .value;
 
-                                                      ApiCallResult? result;
-                                                      _setStatus(
-                                                          'custom function $cLabel ...');
-                                                      result = await _api
-                                                          .userDefined(url);
-                                                      if (!result.success)
-                                                        _setStatus(cLabel +
-                                                            ' ' +
-                                                            result.errorString);
-                                                    },
-                                        ),
-                                    ]),
-                              ),
-                            ),
-                        ],
-                      ),
-                    )
-                  ],
+                                                  ApiCallResult? result;
+                                                  _setStatus(
+                                                      'custom function $cLabel ...');
+                                                  result = await _api
+                                                      .userDefined(url);
+                                                  if (!result.success)
+                                                    _setStatus(cLabel +
+                                                        ' ' +
+                                                        result.errorString);
+                                                },
+                                    ),
+                                ]),
+                          ),
+                        ),
+                    ],
+                  ),
                 )
-              ,
+              ],
+            ),
     );
   }
 }
