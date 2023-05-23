@@ -34,6 +34,7 @@ class OctoButton extends StatelessWidget {
         this.onPressed,
         this.margin=10,
         this.tooltip,
+        this.rounding=20,
         super.key,
       });
 
@@ -42,9 +43,12 @@ class OctoButton extends StatelessWidget {
   final NeumorphicButtonClickListener? onPressed;
   final String? tooltip;
   final double margin;
+  final double rounding;
   @override
   Widget build(BuildContext context) {
     return NeumorphicButton(tooltip: tooltip,
+        style: NeumorphicStyle(
+          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.all(Radius.circular(rounding))),),
         margin: EdgeInsets.all(margin),
         pressed: null,
         onPressed: onPressed,
