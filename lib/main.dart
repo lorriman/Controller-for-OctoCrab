@@ -111,8 +111,6 @@ class MyApp extends ConsumerWidget {
     }
 
 
-    //final primarySwatch=getMaterialColor(baseColor);
-
     return NeumorphicApp(
       debugShowCheckedModeBanner: true,
       title: 'Flutter Demo',
@@ -137,6 +135,8 @@ class MyApp extends ConsumerWidget {
         lightSource: LightSource.bottomRight,
         iconTheme: IconThemeData(color: colorBrighter(baseColor,0.0)) ,
         intensity: .9,
+         //variantColor: baseColor,
+        accentColor: baseColor.withOpacity(0.7),
         buttonStyle: NeumorphicStyle(
             shape: NeumorphicShape.convex,
             boxShape: NeumorphicBoxShape.roundRect(
