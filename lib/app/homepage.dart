@@ -313,42 +313,46 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                       if (_hasConfiguredCustomItems())
                         Flexible(
                           flex: 0,
-                          child: FittedBox(
-                            child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(height: 10),
-                                  for (var i = 0; i < 10; i++)
-                                    OctoButton(
-                                      'c' + (i + 1).toString(),
-                                      margin: 5,
-                                      fontSize: 18,
-                                      onPressed:
-                                          !_isConfiguredCustomItemByIndex(i)
-                                              ? null
-                                              : () async {
-                                                  final cLabel =
-                                                      'c' + (i + 1).toString();
-                                                  final enumItem =
-                                                      configCustomSet
-                                                          .elementAt(i);
-                                                  final url =
-                                                      _configItems[enumItem]!
-                                                          .value;
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: FittedBox(
+                              child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 10),
+                                    for (var i = 0; i < 10; i++)
+                                      OctoButton(
+                                        'c' + (i + 1).toString(),
+                                        margin: 5,
+                                        fontSize: 18,
+                                        onPressed:
+                                            !_isConfiguredCustomItemByIndex(i)
+                                                ? null
+                                                : () async {
+                                                    final cLabel =
+                                                        'c' + (i + 1).toString();
+                                                    final enumItem =
+                                                        configCustomSet
+                                                            .elementAt(i);
+                                                    final url =
+                                                        _configItems[enumItem]!
+                                                            .value;
 
-                                                  ApiCallResult? result;
-                                                  _setStatus(
-                                                      'custom function $cLabel ...');
-                                                  result = await _api
-                                                      .userDefined(url);
-                                                  if (!result.success)
-                                                    _setStatus(cLabel +
-                                                        ' ' +
-                                                        result.errorString);
-                                                },
-                                    ),
-                                ]),
+                                                    ApiCallResult? result;
+                                                    _setStatus(
+                                                        'custom function $cLabel ...');
+                                                    result = await _api
+                                                        .userDefined(url);
+                                                    if (!result.success)
+                                                      _setStatus(cLabel +
+                                                          ' ' +
+                                                          result.errorString);
+                                                  },
+                                      ),
+                                  ]),
+                            ),
                           ),
                         ),
                     ],
