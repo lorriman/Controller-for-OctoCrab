@@ -162,8 +162,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   Widget build(BuildContext context) {
     final boldStyle = TextStyle(fontWeight: FontWeight.bold);
 
-    final primarySwatch = getMaterialColor(Theme.of(context).primaryColor);//todo: refactor - performance
-
     return CupertinoScrollbar(
       thumbVisibility: true,
       controller: _scrollController,
@@ -180,7 +178,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               padding: EdgeInsets.all(20),
               shape: StadiumBorder(),
               side: BorderSide(
-                  width: 1, color: primarySwatch[300] ?? Colors.grey),
+                  width: 1, color: NeumorphicTheme.of(context)?.current?.buttonStyle?.color?.withOpacity(0.5) ?? Colors.grey),
             ),
             child: Row(
               children: [
