@@ -106,10 +106,33 @@ class _ColorSettingsViewState extends ConsumerState<ColorSettingsView> {
                 Navigator.of(context).pop();},
 
                   child: Ink(
-                      height: sz, width: sz, color: Color.fromRGBO(x, i, 255, 1)),
+                      height: sz, width: sz, color: Color.fromRGBO(i, i, 255, 1)),
                 ),
+                for (int i = start; i < 255; i += incr)
+                  InkWell( onTap: (){  ref.read(colorProvider.notifier).state =Color.fromRGBO(i, i, 255, 1);
+                  Navigator.of(context).pop();},
 
-              for (int i = 200; i < 255; i += incr)
+                    child: Ink(
+                        height: sz, width: sz, color: Color.fromRGBO(i, i, 255, 1)),
+                  ),
+                for (int i = start; i < 255; i += incr)
+                  InkWell( onTap: (){  ref.read(colorProvider.notifier).state =Color.fromRGBO(i,255 ,i , 1);
+                  Navigator.of(context).pop();},
+
+                    child: Ink(
+                        height: sz, width: sz, color: Color.fromRGBO(i, 255,i, 1)),
+                  ),
+
+                for (int i = start; i < 255; i += incr)
+                  InkWell( onTap: (){  ref.read(colorProvider.notifier).state =Color.fromRGBO(255,i, i, 1);
+                  Navigator.of(context).pop();},
+
+                    child: Ink(
+                        height: sz, width: sz, color: Color.fromRGBO(255,i,i, 1)),
+                  ),
+
+
+                for (int i = 200; i < 255; i += incr)
                 InkWell(
                   onTap: (){  ref.read(colorProvider.notifier).state =Color.fromRGBO(i,i,i, 1);
                     Navigator.of(context).pop();
