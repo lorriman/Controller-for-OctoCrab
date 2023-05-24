@@ -116,6 +116,7 @@ class MyApp extends ConsumerWidget {
           intensity: 1,
           baseColor: baseColor,
           lightSource: LightSource.topLeft,
+          shadowLightColor: baseColor.withOpacity(0.5),
           depth: 7,
           iconTheme: IconThemeData(color: colorDarker(baseColor, 0.5)),
           buttonStyle: NeumorphicStyle(
