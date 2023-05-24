@@ -144,12 +144,12 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),*/
-      home: MyHomePage(title: "Robert's Controller"),
+      home: HomePage(title: "Robert's Controller"),
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (BuildContext context) =>
-              MyHomePage(title: "Robert's Controller"),
+              HomePage(title: "Robert's Controller"),
         );
       },
     );

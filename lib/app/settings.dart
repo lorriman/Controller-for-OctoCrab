@@ -14,9 +14,7 @@ import 'homepageAux.dart';
 typedef SimpleEvent = void Function();
 
 class SettingsPage extends ConsumerStatefulWidget {
-  SettingsPage({super.key, required this.title});
-
-  final String title;
+  SettingsPage({super.key});
 
   @override
   ConsumerState<SettingsPage> createState() => _MyHomePageState();
@@ -92,7 +90,6 @@ class _MyHomePageState extends ConsumerState<SettingsPage> {
                   configItems: _configItems,
                   update: () {
                     loadConfig(ref, _configItems);
-                    //setState(() {});
                   },
                   onShutdown: () async {
                     final shouldShutdown =

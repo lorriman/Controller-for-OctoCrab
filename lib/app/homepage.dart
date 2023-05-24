@@ -23,19 +23,18 @@ import 'package:simple_octocrab/services/loggingInst.dart';
 import 'customWidgets.dart';
 import 'homepageAux.dart';
 
-enum ViewEnum { main, settings, log }
+//enum ViewEnum { main, settings, log }
 
-class MyHomePage extends ConsumerStatefulWidget {
-  MyHomePage({super.key, required this.title, this.view = ViewEnum.main});
+class HomePage extends ConsumerStatefulWidget {
+  HomePage({super.key, required this.title});
 
   final String title;
-  final ViewEnum view;
 
   @override
-  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<HomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends ConsumerState<MyHomePage> {
+class _MyHomePageState extends ConsumerState<HomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final OctoCrabApi _api = OctoCrabApi();
@@ -110,6 +109,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   //determines if the user has configured one of the c1-c10 customisable buttons
   //Not a getter as the compute is relatively expensive
+  //todo: cache result
   bool _hasConfiguredCustomItems() {
     int c = 0;
     _configItems.forEach((key, value) {
@@ -127,49 +127,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool _isConfiguredCustomItem(ConfigEnum enumItem) {
     return _configItems[enumItem]!.value != '';
   }
-/*
-  setColor(context, Color color) {
-    final neumorphic = NeumorphicTheme.of(context);
 
-    final oldTheme = neumorphic!.value.theme;
-    setState(() {
-      neumorphic.updateCurrentTheme(oldTheme.copyWith(
-        baseColor: color,
-      ));
-    });
-  }
-*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: !_showLog
           ? null
-          : FloatingActionButton(
-              tooltip: 'copy the log to the clipboard',
-              child: Icon(Icons.copy),
-              onPressed: () {
-                int idx = 0;
-                FlutterClipboard.copy(logLines.fold<String>(
-                        '', (prev, e) => '$prev\n${idx++} ${e.line}'))
-                    .then(
-                        (value) => snackBar(context, 'Log copied to clipboard'))
-                    .catchError(
-                        (err) => snackBar(context, 'Copy failed: $err'));
-              }),
+          : _logFloatingActionButton(context),
       appBar: NeumorphicAppBar(
-//        automaticallyImplyLeading: true,
-        /* leading: switch (Navigator.of(context).canPop()) {
-          (true) => InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black54,
-              ),
-            ),
-          (false) => null,
-        },*/
         title: FittedBox(
           child: Row(
             children: [
@@ -185,152 +150,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ),
         ),
         actions: [
-          if (widget.view != ViewEnum.settings)
+          //if (widget.view != ViewEnum.settings)
             IconButton(
                 icon: Icon(Icons.settings_outlined),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => SettingsPage(title: 'Settings')),
+                        builder: (context) => SettingsPage()),
                   );
                 }),
         ],
       ),
       drawer: SafeArea(
-        child: Drawer(
-            backgroundColor: NeumorphicTheme.of(context)!.current!.baseColor,
-            width: 350,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: OctoText('Options', 40),
-                          ),
-                          Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  //color: Colors.red,
-                                  alignment: Alignment.centerLeft,
-                                  width: 120,
-                                  child: SizedBox(
-                                    width: 100,
-                                    child: OctoSwitch(
-                                        value: ref
-                                            .read(darkModeProvider), //flicker?
-                                        onChanged: (value) {
-                                          ref
-                                              .read(darkModeProvider.notifier)
-                                              .state = value;
-
-                                        }),
-                                  ),
-                                ),
-                                OctoText('dark mode', 20),
-                              ],
-                            ),
-                          ),
-
-                          /* Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                NeumorphicCheckbox(value: true, onChanged: (value) {}),
-                                SizedBox(width: 20),
-                                OctoText('Neumorphic',20),
-                              ],
-                            ),
-                          ),*/
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: OctoButton(
-                              'color',
-                              rounding: 10,
-                              onPressed: () {
-                                showModalBottomSheet(
-                                    context: context,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(40.0),
-                                          topRight: Radius.circular(40.0)),
-                                    ),
-                                    isScrollControlled: true,
-                                    builder: (context) {
-                                      return ColorSettingsView(title: 'title');
-                                    });
-                              },
-                            ),
-                          ),
-                        ]),
-                  ),
-                ),
-
-//                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
-                //setColor(context,Color(0xFFFFFFFF));}),
-                Divider(),
-                Center(
-                  child: OctoButton(
-                    'about', rounding : 10,
-                    onPressed: () => aboutDialog(context),
-                  ),
-                ),
-                Divider(),
-              ],
-            )),
+        child: HomepageDrawer(),
       ),
       body: _showLog
-          ? //todo: refactor to _showLog
-          Container(
-              color: Color(0x11111111),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text('Log : ',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      IconButton(
-                          icon: Icon(Icons.keyboard_double_arrow_down),
-                          onPressed: () => _scrollLogDown()),
-                      IconButton(
-                          icon: Icon(Icons.keyboard_double_arrow_up),
-                          onPressed: () => _scrollLogUp()),
-                    ],
-                  ),
-                  Expanded(
-                    child: Scrollbar(
-                      trackVisibility: true,
-                      thickness: 10,
-                      thumbVisibility: true,
-                      controller: _scrollController,
-                      interactive: true,
-                      child: ListView.builder(
-                          controller: _scrollController, //shrinkWrap: true,
-                          itemCount: logLines.length,
-                          itemBuilder: (_, idx) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 5.0),
-                              child: SelectableText(
-                                  style: TextStyle(
-                                      fontFamily: Platform.isIOS
-                                          ? "Courier"
-                                          : "monospace"),
-                                  '${idx} ${logLines[idx].line}'),
-                            );
-                          }),
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? _logView()
           : CustomScrollView(
               slivers: [
                 SliverFillRemaining(
@@ -524,5 +359,167 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ],
             ),
     );
+  }
+
+  FloatingActionButton _logFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+            tooltip: 'copy the log to the clipboard',
+            child: Icon(Icons.copy),
+            onPressed: () {
+              int idx = 0;
+              FlutterClipboard.copy(logLines.fold<String>(
+                      '', (prev, e) => '$prev\n${idx++} ${e.line}'))
+                  .then(
+                      (value) => snackBar(context, 'Log copied to clipboard'))
+                  .catchError(
+                      (err) => snackBar(context, 'Copy failed: $err'));
+            });
+  }
+
+
+  _logView(){
+    return //todo: refactor to _showLog
+      Container(
+        color: Color(0x11111111),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text('Log : ',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                IconButton(
+                    icon: Icon(Icons.keyboard_double_arrow_down),
+                    onPressed: () => _scrollLogDown()),
+                IconButton(
+                    icon: Icon(Icons.keyboard_double_arrow_up),
+                    onPressed: () => _scrollLogUp()),
+              ],
+            ),
+            Expanded(
+              child: Scrollbar(
+                trackVisibility: true,
+                thickness: 10,
+                thumbVisibility: true,
+                controller: _scrollController,
+                interactive: true,
+                child: ListView.builder(
+                    controller: _scrollController, //shrinkWrap: true,
+                    itemCount: logLines.length,
+                    itemBuilder: (_, idx) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0),
+                        child: SelectableText(
+                            style: TextStyle(
+                                fontFamily: Platform.isIOS
+                                    ? "Courier"
+                                    : "monospace"),
+                            '${idx} ${logLines[idx].line}'),
+                      );
+                    }),
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+}
+
+class HomepageDrawer extends ConsumerWidget {
+  const HomepageDrawer({
+    super.key,
+  });
+
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Drawer(
+        backgroundColor: NeumorphicTheme.of(context)?.current?.baseColor ?? null,
+        width: 350,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: OctoText('Options', 40),
+                      ),
+                      Divider(),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              //color: Colors.red,
+                              alignment: Alignment.centerLeft,
+                              width: 120,
+                              child: SizedBox(
+                                width: 100,
+                                child: OctoSwitch(
+                                    value: ref
+                                        .read(darkModeProvider), //flicker?
+                                    onChanged: (value) {
+                                      ref
+                                          .read(darkModeProvider.notifier)
+                                          .state = value;
+
+                                    }),
+                              ),
+                            ),
+                            OctoText('dark mode', 20),
+                          ],
+                        ),
+                      ),
+
+                      /* Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            NeumorphicCheckbox(value: true, onChanged: (value) {}),
+                            SizedBox(width: 20),
+                            OctoText('Neumorphic',20),
+                          ],
+                        ),
+                      ),*/
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: OctoButton(
+                          'color',
+                          rounding: 10,
+                          onPressed: () {
+                            showModalBottomSheet(
+                                context: context,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(40.0),
+                                      topRight: Radius.circular(40.0)),
+                                ),
+                                isScrollControlled: true,
+                                builder: (context) {
+                                  return ColorSettingsView();
+                                });
+                          },
+                        ),
+                      ),
+                    ]),
+              ),
+            ),
+
+//                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
+            //setColor(context,Color(0xFFFFFFFF));}),
+            Divider(),
+            Center(
+              child: OctoButton(
+                'about', rounding : 10,
+                onPressed: () => aboutDialog(context),
+              ),
+            ),
+            Divider(),
+          ],
+        ));
   }
 }
