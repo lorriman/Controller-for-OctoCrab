@@ -10,8 +10,7 @@ import 'package:logging/logging.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_octocrab/services/loggingInst.dart';
-import 'package:simple_octocrab/services/utils.dart';
-//import 'package:simple_octocrab/services/utils.dart';
+
 import 'package:window_size/window_size.dart';
 
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
@@ -25,14 +24,14 @@ void main() async {
 
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name.padRight(8)}: ${record.time}: ${record.message}');
+    print(
+        '${record.level.name.padRight(8)}: ${record.time}: ${record.message}');
   });
 
   Logger.root.onRecord.listen((record) {
-    final time=record.time;
-    final timeStr='${time.day}\\${time.hour}:${time.minute}:${time.second}';
-    logLines.add(LogLine(record.level,
-        '$timeStr ${record.message}'));
+    final time = record.time;
+    final timeStr = '${time.day}\\${time.hour}:${time.minute}:${time.second}';
+    logLines.add(LogLine(record.level, '$timeStr ${record.message}'));
   });
 
   FlutterError.onError = (details) {
@@ -53,7 +52,7 @@ void main() async {
   };
   print('main error handlers initialised');
 
-  if(!kIsWeb) {
+  if (!kIsWeb) {
     //helps test as phone dimensions when debugging.
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       if (kDebugMode) {
@@ -80,11 +79,11 @@ void main() async {
       DeviceOrientation.portraitDown,
     ],
   ).then((val) {  */
-    runApp(ProviderScope(overrides: [
-      sharedPreferencesServiceProvider.overrideWithValue(
-        SharedPreferencesService(sharedPreferences),
-      ),
-    ], child: MyApp()));
+  runApp(ProviderScope(overrides: [
+    sharedPreferencesServiceProvider.overrideWithValue(
+      SharedPreferencesService(sharedPreferences),
+    ),
+  ], child: MyApp()));
   //});
 //  runApp(const MyApp());
   print('main exiting main');
@@ -97,46 +96,43 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     //return MaterialApp(
     final darkMode = ref.watch(darkModeProvider);
-    final baseColor =  ref.watch(colorProvider);   //Color(0xFFAAD7F1);
+    final baseColor = ref.watch(colorProvider);
 
-    Color colorBrighter(Color color, double brightness ) {
-      if(brightness==0.0)
-        return color;
-       return Color.lerp(color, Colors.white, brightness) ?? color;
+    Color colorBrighter(Color color, double brightness) {
+      if (brightness == 0.0) return color;
+      return Color.lerp(color, Colors.white, brightness) ?? color;
     }
-    Color colorDarker(Color color, double darkness ) {
-      if(darkness==0.0)
-        return color;
+
+    Color colorDarker(Color color, double darkness) {
+      if (darkness == 0.0) return color;
       return Color.lerp(color, Colors.black, darkness) ?? color;
     }
-
-
-    //final primarySwatch=getMaterialColor(baseColor);
 
     return NeumorphicApp(
       debugShowCheckedModeBanner: true,
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: NeumorphicThemeData(
-          baseColor: baseColor,//Color(0xFFAAD7F1),//0xFFFFFFFF
-
+          intensity: 1,
+          baseColor: baseColor,
           lightSource: LightSource.topLeft,
+          shadowLightColor: baseColor.withOpacity(0.5),
           depth: 7,
-          iconTheme: IconThemeData(color: colorDarker(baseColor,0.5)) ,
-          //textTheme: TextTheme(  :  TextStyle(color: Colors.black)),
-
+          iconTheme: IconThemeData(color: colorDarker(baseColor, 0.5)),
           buttonStyle: NeumorphicStyle(
               shape: NeumorphicShape.concave,
               boxShape: NeumorphicBoxShape.roundRect(
                 BorderRadius.circular(20),
               ))),
       darkTheme: NeumorphicThemeData(
-        baseColor: colorDarker(baseColor,0.65),//Color(0xFF3E3E3E),
-        shadowDarkColor: colorBrighter(baseColor,0.0),//Color(0xFFFFFFFF),
-        shadowLightColor: colorDarker(baseColor,0.0), // Color(0xBBBBBBBB),
+        baseColor: colorDarker(baseColor, 0.65), //Color(0xFF3E3E3E),
+        shadowDarkColor: colorBrighter(baseColor, 0.0), //Color(0xFFFFFFFF),
+        shadowLightColor: colorDarker(baseColor, 0.0), // Color(0xBBBBBBBB),
         lightSource: LightSource.bottomRight,
-        iconTheme: IconThemeData(color: colorBrighter(baseColor,0.0)) ,
+        iconTheme: IconThemeData(color: colorBrighter(baseColor, 0.0)),
         intensity: .9,
+        //variantColor: baseColor,
+        accentColor: baseColor.withOpacity(0.7),
         buttonStyle: NeumorphicStyle(
             shape: NeumorphicShape.convex,
             boxShape: NeumorphicBoxShape.roundRect(
@@ -148,13 +144,12 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),*/
-      home: MyHomePage(title: "Robert's Controller"),
-
+      home: HomePage(title: "Robert's Controller"),
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (BuildContext context) =>
-              MyHomePage(title: "Robert's Controller"),
+              HomePage(title: "Robert's Controller"),
         );
       },
     );

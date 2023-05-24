@@ -12,8 +12,6 @@ import 'package:simple_octocrab/app/settings.dart';
 
 import 'package:simple_octocrab/services/api.dart';
 
-import 'package:simple_octocrab/services/shared_preferences_service.dart';
-
 import 'package:clipboard/clipboard.dart';
 
 import 'appproviders.dart';
@@ -25,28 +23,26 @@ import 'package:simple_octocrab/services/loggingInst.dart';
 import 'customWidgets.dart';
 import 'homepageAux.dart';
 
-enum ViewEnum { main, settings, log }
 
-class MyHomePage extends ConsumerStatefulWidget {
-  MyHomePage({super.key, required this.title, this.view = ViewEnum.main});
+class HomePage extends ConsumerStatefulWidget {
+  HomePage({super.key, required this.title});
 
   final String title;
-  final ViewEnum view;
 
   @override
-  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<HomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends ConsumerState<MyHomePage> {
+class _MyHomePageState extends ConsumerState<HomePage> {
   final ScrollController _scrollController = ScrollController();
 
   final OctoCrabApi _api = OctoCrabApi();
   final Map<ConfigEnum, ConfigItem> _configItems = {};
 
-  String _status = '';
+  String _statusStr = '';
   bool _showLog = false;
   bool _connected =
-      true; //set to false to re-enable login, see [ConfigEnum] to re-enable options
+      true; //set to false to re-enable login logic, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
   bool _rateLimitBrightness = false;
@@ -96,34 +92,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-/*
-  void _loadConfig( Map<ConfigEnum, ConfigItem> configItems) {
-    configItems.clear();
-
-    final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
-
-    for (final enumItem in ConfigEnum.values) {
-      final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
-          enumItem.example;
-      final item = ConfigItem(enumItem, value);
-      configItems[enumItem] = item;
-    }
-  }
-
-  _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
-    _api.init(
-      address: configItems[ConfigEnum.server]!.value,
-      shutdown: configItems[ConfigEnum.shutdown]!.value,
-      password: configItems[ConfigEnum.password]!.value,
-      login_url: configItems[ConfigEnum.login]!.value,
-      on_url: configItems[ConfigEnum.switchOn]!.value,
-      off_url: configItems[ConfigEnum.switchOff]!.value,
-      brightness_url: configItems[ConfigEnum.brightness]!.value,
-      next_url: configItems[ConfigEnum.next]!.value,
-      prev_url: configItems[ConfigEnum.prev]!.value,
-    );
-  }
-*/
   @override
   void dispose() {
     print('homepage dispose');
@@ -134,12 +102,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   _setStatus(String status) {
     setState(() {
-      _status = status;
+      _statusStr = status;
     });
   }
 
   //determines if the user has configured one of the c1-c10 customisable buttons
   //Not a getter as the compute is relatively expensive
+  //todo: cache result
   bool _hasConfiguredCustomItems() {
     int c = 0;
     _configItems.forEach((key, value) {
@@ -158,48 +127,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return _configItems[enumItem]!.value != '';
   }
 
-  setColor(context, Color color) {
-    final neumorphic = NeumorphicTheme.of(context);
-
-    final oldTheme = neumorphic!.value.theme;
-    setState(() {
-      neumorphic.updateCurrentTheme(oldTheme.copyWith(
-        baseColor: color,
-      ));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: !_showLog
           ? null
-          : FloatingActionButton(
-              tooltip: 'copy the log to the clipboard',
-              child: Icon(Icons.copy),
-              onPressed: () {
-                int idx = 0;
-                FlutterClipboard.copy(logLines.fold<String>(
-                        '', (prev, e) => '$prev\n${idx++} ${e.line}'))
-                    .then(
-                        (value) => snackBar(context, 'Log copied to clipboard'))
-                    .catchError(
-                        (err) => snackBar(context, 'Copy failed: $err'));
-              }),
+          : _logFloatingActionButton(context),
       appBar: NeumorphicAppBar(
-//        automaticallyImplyLeading: true,
-        /* leading: switch (Navigator.of(context).canPop()) {
-          (true) => InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black54,
-              ),
-            ),
-          (false) => null,
-        },*/
         title: FittedBox(
           child: Row(
             children: [
@@ -215,156 +149,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ),
         ),
         actions: [
-          if (widget.view != ViewEnum.settings)
             IconButton(
                 icon: Icon(Icons.settings_outlined),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => SettingsPage(title: 'Settings')),
+                        builder: (context) => SettingsPage()),
                   );
                 }),
         ],
       ),
       drawer: SafeArea(
-        child: Drawer(
-            backgroundColor: NeumorphicTheme.of(context)!.current!.baseColor,
-            width: 350,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: OctoText('Options', 40),
-                          ),
-                          Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  //color: Colors.red,
-                                  alignment: Alignment.centerLeft,
-                                  width: 120,
-                                  child: SizedBox(
-                                    width: 100,
-                                    child: OctoSwitch(
-                                        value: ref
-                                            .read(darkModeProvider), //flicker?
-                                        onChanged: (value) {
-                                          ref
-                                              .read(darkModeProvider.notifier)
-                                              .state = value;
-                                          final sharedPreferencesService = ref.read(
-                                              sharedPreferencesServiceProvider);
-                                          sharedPreferencesService
-                                              .sharedPreferences
-                                              .setBool('darkMode', value);
-                                        }),
-                                  ),
-                                ),
-                                OctoText('dark mode', 20),
-                              ],
-                            ),
-                          ),
-
-                          /* Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                NeumorphicCheckbox(value: true, onChanged: (value) {}),
-                                SizedBox(width: 20),
-                                OctoText('Neumorphic',20),
-                              ],
-                            ),
-                          ),*/
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: OctoButton(
-                              'color',
-                              rounding: 10,
-                              onPressed: () {
-                                showModalBottomSheet(
-                                    context: context,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(40.0),
-                                          topRight: Radius.circular(40.0)),
-                                    ),
-                                    isScrollControlled: true,
-                                    builder: (context) {
-                                      return ColorSettingsView(title: 'title');
-                                    });
-                              },
-                            ),
-                          ),
-                        ]),
-                  ),
-                ),
-
-//                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
-                //setColor(context,Color(0xFFFFFFFF));}),
-                Divider(),
-                Center(
-                  child: OctoButton(
-                    'about', rounding : 10,
-                    onPressed: () => aboutDialog(context),
-                  ),
-                ),
-                Divider(),
-              ],
-            )),
+        child: HomepageDrawer(),
       ),
       body: _showLog
-          ? //todo: refactor to _showLog
-          Container(
-              color: Color(0x11111111),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text('Log : ',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      IconButton(
-                          icon: Icon(Icons.keyboard_double_arrow_down),
-                          onPressed: () => _scrollLogDown()),
-                      IconButton(
-                          icon: Icon(Icons.keyboard_double_arrow_up),
-                          onPressed: () => _scrollLogUp()),
-                    ],
-                  ),
-                  Expanded(
-                    child: Scrollbar(
-                      trackVisibility: true,
-                      thickness: 10,
-                      thumbVisibility: true,
-                      controller: _scrollController,
-                      interactive: true,
-                      child: ListView.builder(
-                          controller: _scrollController, //shrinkWrap: true,
-                          itemCount: logLines.length,
-                          itemBuilder: (_, idx) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 5.0),
-                              child: SelectableText(
-                                  style: TextStyle(
-                                      fontFamily: Platform.isIOS
-                                          ? "Courier"
-                                          : "monospace"),
-                                  '${idx} ${logLines[idx].line}'),
-                            );
-                          }),
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? _logView()
           : CustomScrollView(
               slivers: [
                 SliverFillRemaining(
@@ -413,9 +212,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                 },
                               ),
                             ),
-                            if (_status != '')
+                            if (_statusStr != '')
                               Builder(builder: (context) {
-                                final statusLines = _status.split('\n');
+                                final statusLines = _statusStr.split('\n');
 
                                 return Padding(
                                   padding: const EdgeInsets.only(
@@ -446,7 +245,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                           overflow: TextOverflow.ellipsis,
                                           textScaleFactor: 1.5,
                                         ),
-                                      if (_status == 'connecting...')
+                                      if (_statusStr == 'connecting...')
                                         CircularProgressIndicator(),
                                     ],
                                   ),
@@ -502,10 +301,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                           .read(brightnessProvider.notifier)
                                           .state = value.toInt();
                                     });
-                                    final sharedPreferencesService = ref
-                                        .read(sharedPreferencesServiceProvider);
-                                    sharedPreferencesService.sharedPreferences
-                                        .setInt('brightness', value.toInt());
+
                                     final result = await _api.brightness(
                                         value: value.toInt());
                                     _setStatus(result.errorString);
@@ -517,42 +313,46 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                       if (_hasConfiguredCustomItems())
                         Flexible(
                           flex: 0,
-                          child: FittedBox(
-                            child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(height: 10),
-                                  for (var i = 0; i < 10; i++)
-                                    OctoButton(
-                                      'c' + (i + 1).toString(),
-                                      margin: 5,
-                                      fontSize: 18,
-                                      onPressed:
-                                          !_isConfiguredCustomItemByIndex(i)
-                                              ? null
-                                              : () async {
-                                                  final cLabel =
-                                                      'c' + (i + 1).toString();
-                                                  final enumItem =
-                                                      configCustomSet
-                                                          .elementAt(i);
-                                                  final url =
-                                                      _configItems[enumItem]!
-                                                          .value;
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: FittedBox(
+                              child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 10),
+                                    for (var i = 0; i < 10; i++)
+                                      OctoButton(
+                                        'c' + (i + 1).toString(),
+                                        margin: 5,
+                                        fontSize: 18,
+                                        onPressed:
+                                            !_isConfiguredCustomItemByIndex(i)
+                                                ? null
+                                                : () async {
+                                                    final cLabel =
+                                                        'c' + (i + 1).toString();
+                                                    final enumItem =
+                                                        configCustomSet
+                                                            .elementAt(i);
+                                                    final url =
+                                                        _configItems[enumItem]!
+                                                            .value;
 
-                                                  ApiCallResult? result;
-                                                  _setStatus(
-                                                      'custom function $cLabel ...');
-                                                  result = await _api
-                                                      .userDefined(url);
-                                                  if (!result.success)
-                                                    _setStatus(cLabel +
-                                                        ' ' +
-                                                        result.errorString);
-                                                },
-                                    ),
-                                ]),
+                                                    ApiCallResult? result;
+                                                    _setStatus(
+                                                        'custom function $cLabel ...');
+                                                    result = await _api
+                                                        .userDefined(url);
+                                                    if (!result.success)
+                                                      _setStatus(cLabel +
+                                                          ' ' +
+                                                          result.errorString);
+                                                  },
+                                      ),
+                                  ]),
+                            ),
                           ),
                         ),
                     ],
@@ -561,5 +361,164 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ],
             ),
     );
+  }
+
+  FloatingActionButton _logFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+            tooltip: 'copy the log to the clipboard',
+            child: Icon(Icons.copy),
+            onPressed: () {
+              int idx = 0;
+              FlutterClipboard.copy(logLines.fold<String>(
+                      '', (prev, e) => '$prev\n${idx++} ${e.line}'))
+                  .then(
+                      (value) => snackBar(context, 'Log copied to clipboard'))
+                  .catchError(
+                      (err) => snackBar(context, 'Copy failed: $err'));
+            });
+  }
+
+
+  _logView(){
+    return //todo: refactor to _showLog
+      Container(
+        color: Color(0x11111111),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text('Log : ',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                IconButton(
+                    icon: Icon(Icons.keyboard_double_arrow_down),
+                    onPressed: () => _scrollLogDown()),
+                IconButton(
+                    icon: Icon(Icons.keyboard_double_arrow_up),
+                    onPressed: () => _scrollLogUp()),
+              ],
+            ),
+            Expanded(
+              child: Scrollbar(
+                trackVisibility: true,
+                thickness: 10,
+                thumbVisibility: true,
+                controller: _scrollController,
+                interactive: true,
+                child: ListView.builder(
+                    controller: _scrollController, //shrinkWrap: true,
+                    itemCount: logLines.length,
+                    itemBuilder: (_, idx) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0),
+                        child: SelectableText(
+                            style: TextStyle(
+                                fontFamily: Platform.isIOS
+                                    ? "Courier"
+                                    : "monospace"),
+                            '${idx} ${logLines[idx].line}'),
+                      );
+                    }),
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+}
+
+class HomepageDrawer extends ConsumerWidget {
+  const HomepageDrawer({
+    super.key,
+  });
+
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Drawer(
+        backgroundColor: NeumorphicTheme.of(context)?.current?.baseColor ?? null,
+        width: 350,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: OctoText('Options', 40),
+                      ),
+                      Divider(),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              //color: Colors.red,
+                              alignment: Alignment.centerLeft,
+                              width: 120,
+                              child: SizedBox(
+                                width: 100,
+                                child: OctoSwitch(
+                                    value: ref
+                                        .read(darkModeProvider), //flicker?
+                                    onChanged: (value) {
+                                      ref
+                                          .read(darkModeProvider.notifier)
+                                          .state = value;
+
+                                    }),
+                              ),
+                            ),
+                            OctoText('dark mode', 20),
+                          ],
+                        ),
+                      ),
+
+                      /* Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            NeumorphicCheckbox(value: true, onChanged: (value) {}),
+                            SizedBox(width: 20),
+                            OctoText('Neumorphic',20),
+                          ],
+                        ),
+                      ),*/
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: OctoButton(
+                          'color',
+                          rounding: 10,
+                          onPressed: () {
+                            showModalBottomSheet(
+                                context: context,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(40.0),
+                                      topRight: Radius.circular(40.0)),
+                                ),
+                                isScrollControlled: true,
+                                builder: (context) {
+                                  return ColorSettingsView();
+                                });
+                          },
+                        ),
+                      ),
+                    ]),
+              ),
+            ),
+Divider(),
+            Center(
+              child: OctoButton(
+                'about', rounding : 10,
+                onPressed: () => aboutDialog(context),
+              ),
+            ),
+            Divider(),
+          ],
+        ));
   }
 }

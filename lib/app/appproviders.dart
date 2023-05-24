@@ -20,11 +20,28 @@ final colorProvider = StateProvider<Color>((ref) {
 
 
 final darkModeProvider = StateProvider<bool>((ref) {
+
+  ref.listenSelf((previous, next) {
+    final sharedPreferencesService = ref.read(
+        sharedPreferencesServiceProvider);
+    sharedPreferencesService
+        .sharedPreferences
+        .setBool('darkMode', next);
+  });
+
   final prefService = ref.read(sharedPreferencesServiceProvider);
   return prefService.sharedPreferences.getBool('darkMode') ?? false;
 });
 
 final brightnessProvider = StateProvider<int>((ref) {
+
+  ref.listenSelf((previous, next) {
+    final sharedPreferencesService = ref
+        .read(sharedPreferencesServiceProvider);
+    sharedPreferencesService.sharedPreferences
+        .setInt('brightness', next);
+  });
+
   final prefService = ref.read(sharedPreferencesServiceProvider);
   return prefService.sharedPreferences.getInt('brightness') ?? 125;
 });
