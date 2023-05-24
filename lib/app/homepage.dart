@@ -259,11 +259,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                           ref
                                               .read(darkModeProvider.notifier)
                                               .state = value;
-                                          final sharedPreferencesService = ref.read(
-                                              sharedPreferencesServiceProvider);
-                                          sharedPreferencesService
-                                              .sharedPreferences
-                                              .setBool('darkMode', value);
+
                                         }),
                                   ),
                                 ),
