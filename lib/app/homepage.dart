@@ -12,8 +12,6 @@ import 'package:simple_octocrab/app/settings.dart';
 
 import 'package:simple_octocrab/services/api.dart';
 
-import 'package:simple_octocrab/services/shared_preferences_service.dart';
-
 import 'package:clipboard/clipboard.dart';
 
 import 'appproviders.dart';
@@ -96,34 +94,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-/*
-  void _loadConfig( Map<ConfigEnum, ConfigItem> configItems) {
-    configItems.clear();
-
-    final sharedPrefs = ref.read(sharedPreferencesServiceProvider);
-
-    for (final enumItem in ConfigEnum.values) {
-      final value = sharedPrefs.sharedPreferences.getString(enumItem.key) ??
-          enumItem.example;
-      final item = ConfigItem(enumItem, value);
-      configItems[enumItem] = item;
-    }
-  }
-
-  _configureApi(Map<ConfigEnum, ConfigItem> configItems) {
-    _api.init(
-      address: configItems[ConfigEnum.server]!.value,
-      shutdown: configItems[ConfigEnum.shutdown]!.value,
-      password: configItems[ConfigEnum.password]!.value,
-      login_url: configItems[ConfigEnum.login]!.value,
-      on_url: configItems[ConfigEnum.switchOn]!.value,
-      off_url: configItems[ConfigEnum.switchOff]!.value,
-      brightness_url: configItems[ConfigEnum.brightness]!.value,
-      next_url: configItems[ConfigEnum.next]!.value,
-      prev_url: configItems[ConfigEnum.prev]!.value,
-    );
-  }
-*/
   @override
   void dispose() {
     print('homepage dispose');
@@ -157,7 +127,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   bool _isConfiguredCustomItem(ConfigEnum enumItem) {
     return _configItems[enumItem]!.value != '';
   }
-
+/*
   setColor(context, Color color) {
     final neumorphic = NeumorphicTheme.of(context);
 
@@ -168,7 +138,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       ));
     });
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -498,10 +468,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                           .read(brightnessProvider.notifier)
                                           .state = value.toInt();
                                     });
-                                    final sharedPreferencesService = ref
-                                        .read(sharedPreferencesServiceProvider);
-                                    sharedPreferencesService.sharedPreferences
-                                        .setInt('brightness', value.toInt());
+
                                     final result = await _api.brightness(
                                         value: value.toInt());
                                     _setStatus(result.errorString);
