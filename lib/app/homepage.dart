@@ -23,7 +23,6 @@ import 'package:simple_octocrab/services/loggingInst.dart';
 import 'customWidgets.dart';
 import 'homepageAux.dart';
 
-//enum ViewEnum { main, settings, log }
 
 class HomePage extends ConsumerStatefulWidget {
   HomePage({super.key, required this.title});
@@ -40,10 +39,10 @@ class _MyHomePageState extends ConsumerState<HomePage> {
   final OctoCrabApi _api = OctoCrabApi();
   final Map<ConfigEnum, ConfigItem> _configItems = {};
 
-  String _status = '';
+  String _statusStr = '';
   bool _showLog = false;
   bool _connected =
-      true; //set to false to re-enable login, see [ConfigEnum] to re-enable options
+      true; //set to false to re-enable login logic, see [ConfigEnum] to re-enable options
   bool _is_on = false;
   double _brightness = 0;
   bool _rateLimitBrightness = false;
@@ -103,7 +102,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
 
   _setStatus(String status) {
     setState(() {
-      _status = status;
+      _statusStr = status;
     });
   }
 
@@ -150,7 +149,6 @@ class _MyHomePageState extends ConsumerState<HomePage> {
           ),
         ),
         actions: [
-          //if (widget.view != ViewEnum.settings)
             IconButton(
                 icon: Icon(Icons.settings_outlined),
                 onPressed: () {
@@ -214,9 +212,9 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                 },
                               ),
                             ),
-                            if (_status != '')
+                            if (_statusStr != '')
                               Builder(builder: (context) {
-                                final statusLines = _status.split('\n');
+                                final statusLines = _statusStr.split('\n');
 
                                 return Padding(
                                   padding: const EdgeInsets.only(
@@ -247,7 +245,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                           overflow: TextOverflow.ellipsis,
                                           textScaleFactor: 1.5,
                                         ),
-                                      if (_status == 'connecting...')
+                                      if (_statusStr == 'connecting...')
                                         CircularProgressIndicator(),
                                     ],
                                   ),
@@ -508,10 +506,7 @@ class HomepageDrawer extends ConsumerWidget {
                     ]),
               ),
             ),
-
-//                    Navigator.of(context).push( MaterialPageRoute(builder: (context) => ColorSettingsView(title: 'colors')));}),
-            //setColor(context,Color(0xFFFFFFFF));}),
-            Divider(),
+Divider(),
             Center(
               child: OctoButton(
                 'about', rounding : 10,
