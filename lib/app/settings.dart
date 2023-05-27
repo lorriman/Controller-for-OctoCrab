@@ -38,6 +38,7 @@ class _MyHomePageState extends ConsumerState<SettingsPage> {
   @override
   void dispose() {
     print('settingsPage dispose');
+
     _api.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -171,28 +172,31 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         ListTile(
             title: Text('commands :', textScaleFactor: 1.2, style: boldStyle)),
         ListTile(
-            title: Center(
-          child: OutlinedButton(
-            onPressed: widget.onShutdown,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.all(20),
-              shape: StadiumBorder(),
-              side: BorderSide(
-                  width: 1, color: NeumorphicTheme.of(context)?.current?.buttonStyle?.color?.withOpacity(0.5) ?? Colors.grey),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 80,
-                  child: Icon(Icons.power_settings_new,
-                      color: Colors.red.shade300),
+          title: Row(
+            children: [Expanded(child: SizedBox(width:10)),//nasty cludge to get shrink-wrapped button
+              OutlinedButton(
+
+                onPressed: widget.onShutdown,
+                style: OutlinedButton.styleFrom(
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(20),
+                  shape: StadiumBorder(),
+                  side: BorderSide(
+                      width: 1, color: NeumorphicTheme.of(context)?.current?.buttonStyle?.color?.withOpacity(0.5) ?? Colors.grey),
                 ),
-                Text('shutdown remote device',
-                    textScaleFactor: 1.5, style: TextStyle(color: Colors.red)),
-              ],
-            ),
+                child: Row(
+                  children: [
+                    Icon(Icons.power_settings_new,
+                        color: Colors.red.shade300),
+                    SizedBox(width:10),
+                    Text('shutdown remote device',
+                        textScaleFactor: 1.5, style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            Expanded(child:SizedBox(width:10))],
           ),
-        )),
+        ),
         Divider(),
         ListTile(
             title: Text(
