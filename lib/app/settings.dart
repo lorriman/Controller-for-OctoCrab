@@ -173,7 +173,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             title: Text('commands :', textScaleFactor: 1.2, style: boldStyle)),
         ListTile(
           title: Row(
-            children: [Expanded(child: SizedBox(width:10)),
+            children: [Expanded(child: SizedBox(width:10)),//nasty cludge to get shrink-wrapped button
               OutlinedButton(
 
                 onPressed: widget.onShutdown,
@@ -186,11 +186,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 80,
-                      child: Icon(Icons.power_settings_new,
-                          color: Colors.red.shade300),
-                    ),
+                    Icon(Icons.power_settings_new,
+                        color: Colors.red.shade300),
+                    SizedBox(width:10),
                     Text('shutdown remote device',
                         textScaleFactor: 1.5, style: TextStyle(color: Colors.red)),
                   ],

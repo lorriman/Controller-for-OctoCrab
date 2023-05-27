@@ -151,11 +151,13 @@ class _MyHomePageState extends ConsumerState<HomePage> {
         actions: [
             IconButton(
                 icon: Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.of(context).push(
+                onPressed: ()async  {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (context) => SettingsPage()),
                   );
+                  loadConfig(ref, _configItems);
+                  configureApi(_api, _configItems);
                 }),
         ],
       ),
