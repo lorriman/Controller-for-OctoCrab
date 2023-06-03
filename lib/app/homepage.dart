@@ -260,6 +260,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                   children: [
                                     FittedBox(
                                       child: OctoButton('prev',
+                                          key: Key('prev button'),
                                           fontSize: 40,
                                           onPressed: _connected
                                               ? () async {
@@ -274,6 +275,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                     ),
                                     FittedBox(
                                       child: OctoButton('next',
+                                          key: Key('next button'),
                                           fontSize: 40,
                                           onPressed: _connected
                                               ? () async {
@@ -327,6 +329,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                     for (var i = 0; i < 10; i++)
                                       OctoButton(
                                         'c' + (i + 1).toString(),
+                                        key: Key('c' + (i + 1).toString()+' button'),
                                         margin: 5,
                                         fontSize: 18,
                                         onPressed:

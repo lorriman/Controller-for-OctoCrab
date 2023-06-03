@@ -189,7 +189,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     Icon(Icons.power_settings_new,
                         color: Colors.red.shade300),
                     SizedBox(width:10),
-                    Text('shutdown remote device',
+                    Text('shutdown remote service',
                         textScaleFactor: 1.5, style: TextStyle(color: Colors.red)),
                   ],
                 ),

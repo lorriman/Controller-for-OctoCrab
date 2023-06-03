@@ -2,33 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:simple_octocrab/main.dart';
 import 'package:simple_octocrab/services/shared_preferences_service.dart';
 
-void main() {
+import 'package:integration_test/integration_test.dart';
+
+import 'package:simple_octocrab/main.dart' as app;
+
+void main() async {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   group('Testing App', () {
 
     testWidgets('Connect test', (tester) async {
 
-      WidgetsFlutterBinding.ensureInitialized();
+      //WidgetsFlutterBinding.ensureInitialized();
 
 
       final sharedPreferences = await SharedPreferences.getInstance();
 
-      final myApp= MyApp();
+      //app.main();
+
+
 
       runApp(ProviderScope(overrides: [
         sharedPreferencesServiceProvider.overrideWithValue(
           SharedPreferencesService(sharedPreferences),
         ),
-      ], child: myApp));
+      ], child: app.MyApp()));
+
+      await tester.pumpAndSettle();
 
 
-      await tester.pumpWidget(myApp);
+      //await tester.pumpWidget(myApp);
       await tester.pumpAndSettle();
       print('pump myApp');
       final buttonKeys = [
-        'on/off button',
+        'c1 button',
+//        'on/off button',
 
       ];
 

@@ -109,6 +109,7 @@ class MyApp extends ConsumerWidget {
     }
 
     return NeumorphicApp(
+
       debugShowCheckedModeBanner: true,
       title: 'Flutter Demo',
       themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
