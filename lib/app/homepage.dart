@@ -228,7 +228,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
                                       FittedBox(
-                                        child: Text(
+                                        child: Text( key: Key('status initial line'),
                                           statusLines[0].trim(),
                                           style: TextStyle(
                                               fontWeight: FontWeight.w600),
@@ -241,7 +241,7 @@ class _MyHomePageState extends ConsumerState<HomePage> {
                                       for (int i = 1;
                                           i < statusLines.length;
                                           i++)
-                                        Text(
+                                        Text( key: Key('status line $i'),
                                           statusLines[i].trim(),
                                           maxLines: 5,
                                           overflow: TextOverflow.ellipsis,
