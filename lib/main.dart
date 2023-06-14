@@ -20,8 +20,9 @@ import 'app/homepage.dart';
 
 void main() async {
   print('main started');
+  logLines.add(LogLine(Level.FINEST, 'main started'));
   WidgetsFlutterBinding.ensureInitialized();
-
+  logLines.add(LogLine(Level.FINEST, 'FLutter Bindings Initialized'));
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     print(
@@ -50,11 +51,13 @@ void main() async {
             (stack != null ? 'STARTTRACE:\n$stack ENDTRACE' : '')));
     return false;
   };
-  print('main error handlers initialised');
+  logLines.add(LogLine(Level.FINEST, 'Logging Initialized'));
 
   if (!kIsWeb) {
     //helps test as phone dimensions when debugging.
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      logLines.add(LogLine(Level.FINEST, 'Setting window sizes'));
+
       if (kDebugMode) {
         //setWindowMaxSize(const Size(450, 900));
         //setWindowMinSize(const Size(384, 400));
@@ -68,9 +71,10 @@ void main() async {
       //setWindowFrame(Rect frame)
     }
   }
-  print('main windows size set');
+
   final sharedPreferences = await SharedPreferences.getInstance();
-  print('main shared preferences instance fetched');
+  logLines.add(LogLine(Level.FINEST, 'main shared preferences instance fetched'));
+
   /*
   //this is removed, but layout issues might require its return so left here
   SystemChrome.setPreferredOrientations(
@@ -79,6 +83,8 @@ void main() async {
       DeviceOrientation.portraitDown,
     ],
   ).then((val) {  */
+  logLines.add(LogLine(Level.FINEST, 'about to runApp...'));
+
   runApp(ProviderScope(overrides: [
     sharedPreferencesServiceProvider.overrideWithValue(
       SharedPreferencesService(sharedPreferences),
@@ -86,7 +92,8 @@ void main() async {
   ], child: MyApp()));
   //});
 //  runApp(const MyApp());
-  print('main exiting main');
+  logLines.add(LogLine(Level.FINEST, 'exiting main'));
+
 }
 
 class MyApp extends ConsumerWidget {
